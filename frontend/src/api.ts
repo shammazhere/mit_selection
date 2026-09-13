@@ -9,11 +9,21 @@ export type QueueItem = {
   severity: Severity;
   last_updated: string;
   fallback_applied?: boolean;
+  is_false_positive?: boolean;
+  feedback_reason?: string;
 };
 
 export type TimelineEvent = {
   timestamp: string;
   event: string;
+};
+
+export type CusumPoint = {
+  time?: string;
+  timestamp?: string;
+  value: number;
+  label?: string;
+  event?: string;
 };
 
 export type CaseDetail = QueueItem & {
@@ -23,7 +33,7 @@ export type CaseDetail = QueueItem & {
   cohort_used: "role" | "department" | string;
   fallback_applied: boolean;
   explanation_text: string;
-  cusum_path: number[];
+  cusum_path: (number | CusumPoint)[];
   event_timeline: TimelineEvent[];
   is_false_positive?: boolean;
   feedback_reason?: string;
@@ -64,3 +74,28 @@ export function postFeedback(userId: string, reason: string) {
     }),
   });
 }
+
+export function simulateThreat(params: {
+  name: string;
+  role: string;
+  site: string;
+  file: string;
+  email: string;
+  after_hours: boolean;
+  usb: boolean;
+  cloud_upload: boolean;
+}) {
+  return request<{
+    ok: boolean;
+    user_id: string;
+    name: string;
+    role: string;
+    risk_score: number;
+    severity: string;
+    explanation_text: string;
+  }>("/simulate_threat", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+

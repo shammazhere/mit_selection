@@ -48,15 +48,34 @@ class Database:
                     fallback_applied INTEGER NOT NULL,
                     role TEXT,
                     name TEXT,
+                    team TEXT,
                     cusum_path TEXT,
                     multipliers_applied TEXT,
                     score_components TEXT,
                     severity TEXT,
                     explanation_text TEXT,
+                    event_timeline TEXT,
+                    is_false_positive INTEGER DEFAULT 0,
+                    feedback_reason TEXT DEFAULT '',
                     last_updated TEXT NOT NULL,
                     PRIMARY KEY (user_id, date)
                 )
             """)
+            
+            # Migration check for existing databases
+            cursor.execute("PRAGMA table_info(risk_scores)")
+            cols = [row[1] for row in cursor.fetchall()]
+            for col, col_type in [
+                ("team", "TEXT"),
+                ("event_timeline", "TEXT"),
+                ("is_false_positive", "INTEGER DEFAULT 0"),
+                ("feedback_reason", "TEXT DEFAULT ''"),
+            ]:
+                if col not in cols:
+                    try:
+                        cursor.execute(f"ALTER TABLE risk_scores ADD COLUMN {col} {col_type}")
+                    except Exception:
+                        pass
             
             # Table for feedback
             cursor.execute("""
@@ -97,18 +116,22 @@ class Database:
                 score_data["multipliers_applied"] = json.dumps(score_data["multipliers_applied"])
             if "score_components" in score_data and isinstance(score_data["score_components"], dict):
                 score_data["score_components"] = json.dumps(score_data["score_components"])
+            if "event_timeline" in score_data and isinstance(score_data["event_timeline"], list):
+                score_data["event_timeline"] = json.dumps(score_data["event_timeline"])
             
             # Convert boolean to integer
             score_data["fallback_applied"] = 1 if score_data.get("fallback_applied", False) else 0
+            score_data["is_false_positive"] = 1 if score_data.get("is_false_positive", False) else 0
             
             cursor.execute("""
                 INSERT OR REPLACE INTO risk_scores (
                     user_id, date, self_score, peer_score, drift_score,
                     pre_multiplier_score, raw_fusion_score, adjusted_fusion_score,
                     risk_score, cohort_used, cohort_size, fallback_applied,
-                    role, name, cusum_path, multipliers_applied,
-                    score_components, severity, explanation_text, last_updated
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    role, name, team, cusum_path, multipliers_applied,
+                    score_components, severity, explanation_text, event_timeline,
+                    is_false_positive, feedback_reason, last_updated
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 score_data.get("user_id"),
                 score_data.get("date"),
@@ -124,11 +147,15 @@ class Database:
                 score_data.get("fallback_applied"),
                 score_data.get("role"),
                 score_data.get("name"),
+                score_data.get("team", ""),
                 score_data.get("cusum_path"),
                 score_data.get("multipliers_applied"),
                 score_data.get("score_components"),
                 score_data.get("severity"),
                 score_data.get("explanation_text"),
+                score_data.get("event_timeline", "[]"),
+                score_data.get("is_false_positive", 0),
+                score_data.get("feedback_reason", ""),
                 score_data.get("last_updated") or datetime.utcnow().isoformat()
             ))
             
@@ -189,26 +216,128 @@ class Database:
             """, (user_id, 1 if is_false_positive else 0, reason, now))
             
             feedback_id = cursor.lastrowid
+            fp_inc = 1 if is_false_positive else 0
             
             # Update feedback stats
             cursor.execute("""
                 INSERT INTO feedback_stats (user_id, feedback_date, false_positive_count, 
                     total_feedback, down_weight, last_updated)
-                VALUES (?, ?, 0, 1, 1.0, ?)
+                VALUES (?, ?, ?, 1, 1.0, ?)
                 ON CONFLICT(user_id, feedback_date) DO UPDATE SET
                     total_feedback = total_feedback + 1,
                     false_positive_count = false_positive_count + ?,
                     last_updated = ?
-            """, (user_id, feedback_date, now, 1 if is_false_positive else 0, now))
+            """, (user_id, feedback_date, fp_inc, now, fp_inc, now))
             
-            # Update down_weight based on false positive ratio
+            # Update down_weight (clamped between 0.1 and 1.0)
             cursor.execute("""
                 UPDATE feedback_stats SET down_weight = 
-                    CASE WHEN total_feedback > 0 
-                    THEN 1.0 - (false_positive_count * 0.1)
+                    CASE WHEN false_positive_count > 0 
+                    THEN 0.4
                     ELSE 1.0 END
                 WHERE user_id = ? AND feedback_date = ?
             """, (user_id, feedback_date))
+            
+            # Immediately recalibrate latest risk score in risk_scores table
+            cursor.execute("""
+                SELECT risk_score, severity, event_timeline, cusum_path, multipliers_applied, adjusted_fusion_score, is_false_positive
+                FROM risk_scores
+                WHERE user_id = ?
+                ORDER BY date DESC LIMIT 1
+            """, (user_id,))
+            latest_row = cursor.fetchone()
+            if latest_row:
+                curr_risk = float(latest_row[0])
+                already_fp = bool(latest_row[6])
+                
+                # Apply 0.4x dampener if not already applied
+                if is_false_positive:
+                    new_risk = round(curr_risk * 0.4, 1) if not already_fp else curr_risk
+                else:
+                    new_risk = round(curr_risk / 0.4, 1) if already_fp else curr_risk
+                
+                # Recalculate severity tier
+                if new_risk >= 80:
+                    new_sev = "critical"
+                elif new_risk >= 65:
+                    new_sev = "high"
+                elif new_risk >= 50:
+                    new_sev = "medium"
+                else:
+                    new_sev = "low"
+                
+                # Append forensic milestone to event_timeline
+                event_timeline = []
+                if latest_row[2]:
+                    try:
+                        event_timeline = json.loads(latest_row[2]) if isinstance(latest_row[2], str) else latest_row[2]
+                    except Exception:
+                        event_timeline = []
+                
+                now_dt = datetime.now()
+                now_iso = now_dt.strftime("%Y-%m-%dT%H:%M:%S")
+                now_time_str = now_dt.strftime("%I:%M:%S %p")
+                
+                action_label = "Marked as False Positive" if is_false_positive else "False-Positive Designation Removed"
+                event_timeline.append({
+                    "timestamp": now_iso,
+                    "event": f"Investigator Resolution: {action_label} by Admin ({reason or 'Routine operational calibration'}). 0.4x risk dampener applied (Live at {now_time_str}).",
+                    "category": "calibration"
+                })
+
+                # Append calibration drop point to cusum_path
+                cusum_path = []
+                if latest_row[3]:
+                    try:
+                        cusum_path = json.loads(latest_row[3]) if isinstance(latest_row[3], str) else latest_row[3]
+                    except Exception:
+                        cusum_path = []
+                
+                if cusum_path:
+                    last_point = cusum_path[-1]
+                    last_val = last_point.get("value", 0.95) if isinstance(last_point, dict) else float(last_point)
+                    calibrated_val = round(last_val * 0.4, 3) if is_false_positive else last_val
+                    cusum_path.append({
+                        "time": now_time_str,
+                        "timestamp": now_iso,
+                        "value": calibrated_val,
+                        "label": "CALIBRATION",
+                        "event": f"Investigator False Positive Override: {reason[:60] if reason else 'Signal calibrated'}"
+                    })
+
+                # Update multipliers_applied
+                multipliers = {}
+                if latest_row[4]:
+                    try:
+                        multipliers = json.loads(latest_row[4]) if isinstance(latest_row[4], str) else latest_row[4]
+                    except Exception:
+                        multipliers = {}
+                multipliers["feedback_down_weight"] = 0.4 if is_false_positive else 1.0
+
+                cursor.execute("""
+                    UPDATE risk_scores
+                    SET risk_score = ?,
+                        severity = ?,
+                        is_false_positive = ?,
+                        feedback_reason = ?,
+                        event_timeline = ?,
+                        cusum_path = ?,
+                        multipliers_applied = ?,
+                        adjusted_fusion_score = ?,
+                        last_updated = ?
+                    WHERE user_id = ?
+                """, (
+                    new_risk,
+                    new_sev,
+                    1 if is_false_positive else 0,
+                    reason or "",
+                    json.dumps(event_timeline),
+                    json.dumps(cusum_path),
+                    json.dumps(multipliers),
+                    round(new_risk / 60.0, 2),
+                    now_iso,
+                    user_id
+                ))
             
             conn.commit()
             
@@ -247,13 +376,17 @@ class Database:
         result = dict(row)
         
         # Deserialize JSON fields
-        json_fields = ["cusum_path", "multipliers_applied", "score_components"]
+        json_fields = ["cusum_path", "multipliers_applied", "score_components", "event_timeline"]
         for field in json_fields:
             if field in result and result[field]:
                 try:
                     result[field] = json.loads(result[field])
                 except (json.JSONDecodeError, TypeError):
                     pass
+        
+        # Ensure event_timeline is a list
+        if "event_timeline" in result and not isinstance(result["event_timeline"], list):
+            result["event_timeline"] = []
         
         # Convert integers to booleans
         if "fallback_applied" in result:

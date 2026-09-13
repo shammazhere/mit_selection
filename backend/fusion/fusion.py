@@ -127,7 +127,7 @@ class RiskFusionEngine:
         
         if any(kw in role_lower for kw in ["admin", "administrator", "root", "superuser"]):
             return self.multiplier_config.role_admin_weight
-        elif any(kw in role_lower for kw in ["privileged", "manager", "director", "lead"]):
+        elif any(kw in role_lower for kw in ["privileged", "manager", "director", "lead", "controller"]):
             return self.multiplier_config.role_privileged_weight
         else:
             return self.multiplier_config.role_regular_weight
@@ -157,7 +157,7 @@ class RiskFusionEngine:
         
         if "confidential" in flags_lower:
             return self.multiplier_config.data_confidential_weight
-        elif any(f in flags_lower for f in ["removable_media", "removable media", "usb", "external"]):
+        elif any(f in flags_lower for f in ["removable_media", "removable media", "usb", "external", "cloud_upload"]):
             return self.multiplier_config.data_removable_media_weight
         else:
             return self.multiplier_config.data_normal_weight
@@ -189,7 +189,8 @@ class RiskFusionEngine:
         timestamp: Optional[datetime] = None,
         data_flags: Optional[List[str]] = None,
         days_since_last_anomaly: int = 0,
-        fallback_applied: bool = False
+        fallback_applied: bool = False,
+        feedback_down_weight: float = 1.0
     ) -> FusionResult:
         """
         Compute the full 0-100 risk score with all adjustments.
@@ -203,6 +204,7 @@ class RiskFusionEngine:
             data_flags: Data sensitivity flags (for data sensitivity multiplier)
             days_since_last_anomaly: Days since last anomalous activity
             fallback_applied: Whether department fallback was used
+            feedback_down_weight: Factor (0.1 - 1.0) applied if investigator marked false positive
             
         Returns:
             FusionResult with complete score breakdown
@@ -224,8 +226,8 @@ class RiskFusionEngine:
         # Step 4: Apply score decay
         decay_factor = self.apply_score_decay(days_since_last_anomaly)
         
-        # Step 5: Compute adjusted fusion score
-        adjusted_fusion = raw_fusion * combined_multiplier * decay_factor
+        # Step 5: Compute adjusted fusion score including feedback down-weighting
+        adjusted_fusion = raw_fusion * combined_multiplier * decay_factor * feedback_down_weight
         
         # Step 6: Normalize to 0-100 range
         # Clamp to valid range and scale
@@ -233,25 +235,26 @@ class RiskFusionEngine:
         
         return FusionResult(
             user_id="unknown",  # Will be set by caller
-            risk_score=round(normalized, 1),
+            risk_score=round(float(normalized), 1),
             self_score=self_score,
             peer_score=peer_score,
             drift_score=drift_score,
             pre_multiplier_score=pre_multiplier_score,
             raw_fusion_score=raw_fusion,
-            adjusted_fusion_score=adjusted_fusion,
+            adjusted_fusion_score=round(float(adjusted_fusion), 4),
             multipliers_applied={
                 "role": role_mult,
                 "time": time_mult,
                 "data_sensitivity": data_mult,
-                "decay": decay_factor
+                "decay": decay_factor,
+                "feedback_down_weight": feedback_down_weight
             },
             score_components={
                 "self": self_score,
                 "peer": peer_score,
                 "drift": drift_score,
                 "raw_fusion": raw_fusion,
-                "adjusted_fusion": adjusted_fusion
+                "adjusted_fusion": round(float(adjusted_fusion), 4)
             }
         )
 

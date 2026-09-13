@@ -11,9 +11,14 @@ export default function QueuePage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchQueue()
-      .then((data) => setRows([...data].sort((a, b) => b.risk_score - a.risk_score)))
-      .catch((err: Error) => setError(err.message));
+    const loadQueue = () => {
+      fetchQueue()
+        .then((data) => setRows([...data].sort((a, b) => b.risk_score - a.risk_score)))
+        .catch((err: Error) => setError(err.message));
+    };
+    loadQueue();
+    const interval = setInterval(loadQueue, 2000);
+    return () => clearInterval(interval);
   }, []);
 
   const filteredRows = useMemo(() => {
@@ -161,7 +166,25 @@ export default function QueuePage() {
             {filteredRows.map((row) => (
               <tr key={row.user_id} onClick={() => navigate(`/case/${row.user_id}`)}>
                 <td>
-                  <div style={{ fontWeight: 600, color: "var(--ink)" }}>{row.name}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 600, color: "var(--ink)" }}>{row.name}</span>
+                    {row.is_false_positive && (
+                      <span
+                        className="mono"
+                        style={{
+                          fontSize: 10,
+                          padding: "1px 6px",
+                          borderRadius: 4,
+                          background: "rgba(82, 183, 136, 0.15)",
+                          color: "var(--low)",
+                          border: "1px solid rgba(82, 183, 136, 0.35)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        ✓ CALIBRATED FP
+                      </span>
+                    )}
+                  </div>
                   <div className="mono" style={{ fontSize: 12, color: "var(--muted)" }}>
                     {row.user_id}
                   </div>
@@ -190,7 +213,9 @@ export default function QueuePage() {
                               ? "var(--critical)"
                               : row.severity === "high"
                               ? "var(--high)"
-                              : "var(--medium)",
+                              : row.severity === "medium"
+                              ? "var(--medium)"
+                              : "var(--low)",
                         }}
                       />
                     </div>

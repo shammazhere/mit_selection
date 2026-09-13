@@ -20,6 +20,8 @@ export default function CasePage() {
 
   useEffect(() => {
     loadCaseData();
+    const interval = setInterval(loadCaseData, 2000);
+    return () => clearInterval(interval);
   }, [userId]);
 
   if (error) {
@@ -46,7 +48,7 @@ export default function CasePage() {
   }
 
   return (
-    <main style={{ padding: "28px 32px", maxWidth: 1200, margin: "0 auto", display: "grid", gap: 24, width: "100%" }}>
+    <main style={{ padding: "28px 32px", maxWidth: 1200, margin: "0 auto", display: "grid", gap: 24, width: "100%", boxSizing: "border-box", overflowX: "hidden" }}>
       {/* Navigation & Header */}
       <div>
         <Link
@@ -201,7 +203,7 @@ export default function CasePage() {
       </section>
 
       {/* CUSUM Accumulation Chart */}
-      <CusumChart path={detail.cusum_path} />
+      <CusumChart path={detail.cusum_path} timeline={detail.event_timeline} />
 
       {/* Forensic Timeline */}
       <section className="card">

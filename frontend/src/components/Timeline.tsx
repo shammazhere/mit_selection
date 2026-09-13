@@ -20,6 +20,9 @@ function getEventBadge(text: string): { label: string; color: string; bg: string
   if (t.includes("fallback")) {
     return { label: "COHORT FALLBACK", color: "var(--cyan)", bg: "rgba(72, 202, 228, 0.15)" };
   }
+  if (t.includes("calibration") || t.includes("false-positive") || t.includes("down-weight") || t.includes("investigator resolution") || t.includes("overridden")) {
+    return { label: "INVESTIGATOR RESOLUTION", color: "var(--low)", bg: "var(--low-bg)" };
+  }
   return { label: "ANOMALY SIGNAL", color: "var(--medium)", bg: "var(--medium-bg)" };
 }
 
@@ -29,7 +32,7 @@ export default function Timeline({ events }: { events: TimelineEvent[] }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: "100%" }}>
       {events.map((item, idx) => {
         const badge = getEventBadge(item.event);
         return (
@@ -44,9 +47,13 @@ export default function Timeline({ events }: { events: TimelineEvent[] }) {
               borderRadius: "var(--radius-sm)",
               alignItems: "flex-start",
               transition: "border-color 0.2s ease",
+              width: "100%",
+              maxWidth: "100%",
+              boxSizing: "border-box",
+              overflow: "hidden",
             }}
           >
-            <div style={{ minWidth: 160 }}>
+            <div style={{ minWidth: 140, flexShrink: 0 }}>
               <div className="mono" style={{ fontSize: 12, color: "var(--muted)" }}>
                 {item.timestamp.replace("T", " ")}
               </div>
@@ -67,7 +74,18 @@ export default function Timeline({ events }: { events: TimelineEvent[] }) {
               </span>
             </div>
 
-            <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5, color: "var(--ink-secondary)" }}>
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: "var(--ink-secondary)",
+                wordBreak: "break-word",
+                overflowWrap: "anywhere",
+                whiteSpace: "normal",
+              }}
+            >
               {item.event}
             </div>
           </div>

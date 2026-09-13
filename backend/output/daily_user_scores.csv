@@ -5,12 +5,12 @@ C1002,2011-05-02,0.30485,0.428229,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-02,0.383818,0.543477,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-02,0.318963,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-02,0.853499,0.428229,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-02,0.287375,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-02,0.595553,0.967153,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-02,0.261879,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-02,0.626419,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-02,0.116379,0.467903,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-02,0.536059,0.487517,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-02,0.287375,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-02,0.595553,0.892407,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-02,0.261879,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-02,0.626419,0.25865,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-02,0.116379,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-02,0.536059,0.3262,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-02,0.115156,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-02,0.0,0.199748,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-02,0.881324,0.566508,role,6,False,Administrator,Ops,M-IT
@@ -19,18 +19,19 @@ C1016,2011-05-02,0.041593,0.49514,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-02,0.249611,0.456781,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-02,0.0,0.408002,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-02,0.504273,0.51795,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-02,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-03,0.0,0.205549,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-03,0.299135,0.465924,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-03,0.161548,0.543477,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-03,0.334015,0.361781,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-03,0.571568,0.467903,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-03,0.205862,0.428229,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-03,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-03,0.0,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-03,0.892178,0.566508,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-03,0.131956,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-03,0.482454,0.49754,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-03,0.09245,0.428229,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-03,0.0,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-03,0.0,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-03,0.892178,0.385663,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-03,0.131956,0.337637,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-03,0.482454,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-03,0.09245,0.148874,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-03,0.063532,0.342805,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-03,0.89478,0.646011,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-03,0.818787,0.596309,role,6,False,Administrator,Ops,M-IT
@@ -39,18 +40,19 @@ C1016,2011-05-03,0.319176,0.456781,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-03,0.377048,0.526578,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-03,0.0,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-03,0.831445,0.549691,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-03,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-04,0.0,0.543477,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-04,0.143061,0.392852,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-04,0.504518,0.566508,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-04,0.58639,0.543477,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-04,0.369012,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-04,0.0,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-04,0.418545,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-04,0.188439,0.647042,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-04,0.499649,0.598629,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-04,0.499966,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-04,0.256368,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-04,0.038303,0.527344,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-04,0.418545,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-04,0.188439,0.401899,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-04,0.499649,0.215779,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-04,0.499966,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-04,0.256368,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-04,0.038303,0.330264,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-04,0.712534,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-04,0.854417,0.532993,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-04,0.0,0.299819,role,6,False,Administrator,Ops,M-IT
@@ -59,18 +61,19 @@ C1016,2011-05-04,0.105701,0.487517,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-04,0.339734,0.372977,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-04,0.0,0.321958,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-04,0.20835,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-04,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-05,0.0,0.601186,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-05,0.513051,0.448221,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-05,0.883034,0.543477,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-05,0.390724,0.41269,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-05,0.0,0.214873,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-05,0.357132,0.392852,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-05,0.57417,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-05,0.015539,0.532993,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-05,0.432451,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-05,0.216006,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-05,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-05,0.71252,0.428229,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-05,0.57417,0.173352,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-05,0.015539,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-05,0.432451,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-05,0.216006,0.337637,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-05,0.0,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-05,0.71252,0.289715,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-05,0.32071,0.456781,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-05,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-05,0.189695,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -79,18 +82,19 @@ C1016,2011-05-05,0.563275,0.560656,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-05,0.589293,0.487517,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-05,0.0,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-05,0.0,0.27461,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-05,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-06,0.0,0.616611,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-06,1.0,0.532993,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-06,0.236716,0.318516,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-06,0.0,0.543477,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-06,0.272865,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-06,0.673689,0.372977,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-06,0.262184,0.364485,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-06,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-06,0.15751,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-06,0.0,0.299819,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-06,1.0,0.560656,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-06,0.429451,0.487517,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-06,0.262184,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-06,0.0,0.3262,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-06,0.15751,0.105482,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-06,0.0,0.195269,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-06,1.0,0.359495,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-06,0.429451,0.3262,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-06,0.169035,0.49514,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-06,0.27027,0.456781,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-06,0.395209,0.456781,role,6,False,Administrator,Ops,M-IT
@@ -99,18 +103,19 @@ C1016,2011-05-06,1.0,0.596309,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-06,0.442673,0.456781,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-06,0.0,0.207607,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-06,0.488854,0.53176,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-06,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-07,0.0,0.63066,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-07,0.242452,0.392852,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-07,0.0,0.543477,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-07,0.311595,0.299819,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-07,0.966584,0.560656,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-07,0.336573,0.392852,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-07,0.563901,0.49754,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-07,0.0,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-07,0.179188,0.342908,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-07,1.0,0.647042,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-07,0.952079,0.598629,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-07,0.18765,0.332161,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-07,0.563901,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-07,0.0,0.148874,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-07,0.179188,0.301922,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-07,1.0,0.442319,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-07,0.952079,0.215779,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-07,0.18765,0.166772,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-07,0.385263,0.456781,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-07,0.391053,0.526578,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-07,0.448183,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -119,18 +124,19 @@ C1016,2011-05-07,0.276491,0.456781,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-07,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-07,0.0,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-07,0.6764,0.344665,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-07,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-08,0.0,0.631817,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-08,0.0,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-08,0.302487,0.307129,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-08,0.796385,0.546993,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-08,0.767212,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-08,0.346264,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-08,0.144154,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-08,0.0,0.527344,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-08,0.724976,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-08,0.960838,0.536606,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-08,0.0,0.199748,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-08,0.26497,0.487517,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-08,0.144154,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-08,0.0,0.341708,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-08,0.724976,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-08,0.960838,0.131982,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-08,0.0,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-08,0.26497,0.3262,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-08,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-08,0.354436,0.47537,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-08,0.631924,0.456781,role,6,False,Administrator,Ops,M-IT
@@ -139,18 +145,19 @@ C1016,2011-05-08,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-08,0.20573,0.456781,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-08,0.0,0.404872,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-08,0.30287,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-08,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-09,0.0,0.632474,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-09,0.351598,0.490331,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-09,0.46292,0.543477,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-09,0.783252,0.536606,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-09,0.227902,0.198472,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-09,0.05437,0.392852,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-09,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-09,0.0,0.47537,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-09,0.396616,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-09,0.0,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-09,0.089621,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-09,0.040516,0.428229,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-09,0.0,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-09,0.0,0.295631,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-09,0.396616,0.249164,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-09,0.0,0.337637,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-09,0.089621,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-09,0.040516,0.223101,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-09,0.627491,0.497487,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-09,0.592806,0.487517,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-09,0.245358,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -159,18 +166,19 @@ C1016,2011-05-09,0.371838,0.456781,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-09,0.745555,0.646011,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-09,0.0,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-09,0.340935,0.27461,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-09,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-10,0.0,0.636116,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-10,0.475266,0.47537,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-10,0.253079,0.374349,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-10,0.26227,0.543477,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-10,0.012049,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-10,0.0,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-10,0.843088,0.498167,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-10,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-10,0.046058,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-10,0.144372,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-10,0.258131,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-10,0.604725,0.647042,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-10,0.843088,0.314541,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-10,0.0,0.3262,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-10,0.046058,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-10,0.144372,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-10,0.258131,0.239093,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-10,0.604725,0.401899,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-10,1.0,0.596309,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-10,0.271771,0.456781,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-10,0.0,0.299819,role,6,False,Administrator,Ops,M-IT
@@ -179,18 +187,19 @@ C1016,2011-05-10,0.430663,0.487517,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-10,0.787942,0.475968,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-10,0.0,0.198496,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-10,0.070442,0.507948,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-10,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-11,0.026967,0.636829,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-11,0.346992,0.392852,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-11,0.341932,0.543477,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-11,0.01069,0.299819,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-11,0.096846,0.196679,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-11,0.890003,0.485631,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-11,0.956616,0.598629,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-11,0.75267,0.967153,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-11,0.260539,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-11,0.235397,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-11,0.335793,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-11,1.0,0.478372,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-11,0.956616,0.215779,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-11,0.75267,0.892407,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-11,0.260539,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-11,0.235397,0.409448,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-11,0.335793,0.20939,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-11,1.0,0.289715,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-11,0.09304,0.456781,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-11,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-11,0.178969,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -199,18 +208,19 @@ C1016,2011-05-11,0.302466,0.467903,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-11,0.319671,0.487517,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-11,0.0,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-11,0.0,0.27461,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-11,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-12,0.902194,0.780921,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-12,0.259724,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-12,0.02906,0.299819,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-12,0.0,0.543477,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-12,0.542315,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-12,0.846771,0.323667,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-12,0.0,0.205549,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-12,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-12,0.0,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-12,0.130331,0.361781,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-12,0.485784,0.467903,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-12,0.022039,0.487517,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-12,0.0,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-12,0.0,0.3262,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-12,0.0,0.105482,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-12,0.130331,0.25865,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-12,0.485784,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-12,0.022039,0.3262,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-12,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-12,0.085741,0.456781,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-12,0.659238,0.566508,role,6,False,Administrator,Ops,M-IT
@@ -219,18 +229,19 @@ C1016,2011-05-12,0.249389,0.49514,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-12,0.00699,0.456781,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-12,0.0,0.239264,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-12,0.720496,0.51795,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-12,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-13,0.919846,0.780921,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-13,0.0,0.465924,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-13,0.0,0.543477,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-13,0.571734,0.361781,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-13,0.290721,0.467903,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-13,0.0,0.392852,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-13,0.103111,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-13,0.0,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-13,0.36811,0.566508,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-13,0.435034,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-13,0.125803,0.49754,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-13,0.0,0.199748,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-13,0.103111,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-13,0.0,0.225244,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-13,0.36811,0.385663,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-13,0.435034,0.337637,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-13,0.125803,0.14448,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-13,0.0,0.166772,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-13,0.211796,0.456781,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-13,0.638764,0.646011,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-13,0.452844,0.596309,role,6,False,Administrator,Ops,M-IT
@@ -239,18 +250,19 @@ C1016,2011-05-13,0.022267,0.456781,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-13,0.0,0.526578,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-13,0.0,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-13,0.846771,0.549691,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-13,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-14,0.917838,0.808438,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-14,0.0,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-14,0.63934,0.184639,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-14,0.357658,0.388443,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-14,0.0,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-14,0.092858,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-14,0.230745,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-14,0.0,0.647042,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-14,0.87394,0.598629,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-14,0.141533,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-14,0.0,0.199748,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-14,0.213885,0.527344,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-14,0.230745,0.239093,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-14,0.0,0.401899,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-14,0.87394,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-14,0.141533,0.121,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-14,0.0,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-14,0.213885,0.330264,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-14,0.353632,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-14,0.487666,0.532993,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-14,0.133106,0.456781,role,6,False,Administrator,Ops,M-IT
@@ -259,18 +271,19 @@ C1016,2011-05-14,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-14,0.550741,0.456781,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-14,0.0,0.240802,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-14,0.0,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-14,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-15,0.89264,0.808438,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-15,0.652074,0.388443,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-15,0.852604,0.520964,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-15,0.0,0.327193,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-15,0.237806,0.184639,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-15,0.195655,0.388443,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-15,0.147366,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-15,0.22346,0.532993,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-15,0.000957,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-15,0.0,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-15,0.053228,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-15,0.32645,0.428229,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-15,0.147366,0.173352,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-15,0.22346,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-15,0.000957,0.249164,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-15,0.0,0.337637,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-15,0.053228,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-15,0.32645,0.278369,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-15,0.131581,0.364485,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-15,0.144239,0.487517,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-15,0.068968,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -279,18 +292,19 @@ C1016,2011-05-15,0.679111,0.560656,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-15,0.317597,0.487517,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-15,0.0,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-15,0.113453,0.27461,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-15,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-16,0.628669,0.83861,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-16,1.0,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-16,0.0,0.185529,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-16,0.226005,0.388443,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-16,0.067807,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-16,0.348988,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-16,0.589981,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-16,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-16,0.0,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-16,0.155276,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-16,0.848038,0.560656,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-16,0.342083,0.487517,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-16,0.589981,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-16,0.0,0.3262,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-16,0.0,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-16,0.155276,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-16,0.848038,0.359495,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-16,0.342083,0.3262,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-16,0.222951,0.49514,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-16,0.153331,0.456781,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-16,0.0,0.342805,role,6,False,Administrator,Ops,M-IT
@@ -299,18 +313,19 @@ C1016,2011-05-16,1.0,0.596309,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-16,0.0,0.329819,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-16,0.0,0.198496,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-16,0.304806,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-16,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-17,0.57583,0.83861,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-17,0.0,0.388443,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-17,0.127675,0.520964,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-17,0.130399,0.327193,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-17,0.626634,0.191909,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-17,0.594894,0.388443,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-17,0.267699,0.49754,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-17,0.0,0.199748,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-17,0.269678,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-17,0.848038,0.647042,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-17,0.763247,0.598629,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-17,0.248917,0.428229,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-17,0.267699,0.14448,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-17,0.0,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-17,0.269678,0.301922,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-17,0.848038,0.442319,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-17,0.763247,0.215779,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-17,0.248917,0.289715,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-17,0.262871,0.456781,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-17,0.0,0.526578,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-17,0.529417,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -319,18 +334,19 @@ C1016,2011-05-17,0.0,0.199748,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-17,0.236683,0.487517,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-17,0.789371,0.551844,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-17,0.368399,0.27461,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-17,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-18,0.229204,0.871828,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-18,0.145581,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-18,0.350236,0.218945,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-18,0.557471,0.388443,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-18,0.970813,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-18,0.364114,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-18,0.0,0.199748,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-18,0.0,0.527344,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-18,0.540389,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-18,0.787781,0.536606,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-18,0.155516,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-18,0.186827,0.487517,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-18,0.0,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-18,0.0,0.341708,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-18,0.540389,0.129411,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-18,0.787781,0.166772,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-18,0.155516,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-18,0.186827,0.3262,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-18,0.0,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-18,0.541749,0.47537,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-18,0.544563,0.456781,role,6,False,Administrator,Ops,M-IT
@@ -339,18 +355,19 @@ C1016,2011-05-18,0.135318,0.487517,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-18,0.13954,0.456781,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-18,1.0,0.806204,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-18,0.596354,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-18,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-19,0.0,0.871828,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-19,0.331776,0.388443,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-19,0.312511,0.520964,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-19,0.999374,0.327193,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-19,0.172975,0.210592,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-19,0.0,0.388443,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-19,0.121313,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-19,0.0,0.47537,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-19,0.348487,0.374349,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-19,0.120509,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-19,0.061845,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-19,0.0,0.23361,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-19,0.121313,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-19,0.0,0.295631,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-19,0.348487,0.249164,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-19,0.120509,0.337637,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-19,0.061845,0.105482,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-19,0.0,0.223101,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-19,0.672792,0.497487,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-19,0.618916,0.487517,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-19,0.042126,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -359,18 +376,19 @@ C1016,2011-05-19,0.337096,0.456781,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-19,0.54495,0.646011,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-19,0.957873,0.698023,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-19,0.364114,0.317424,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-19,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-20,0.0,0.871828,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-20,0.295671,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-20,0.770932,0.188601,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-20,0.30896,0.388443,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-20,0.0,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-20,0.444729,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-20,0.812878,0.498167,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-20,0.517619,0.967153,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-20,0.401611,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-20,0.144403,0.428229,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-20,0.339272,0.342908,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-20,0.724844,0.647042,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-20,0.812878,0.314541,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-20,0.517619,0.892407,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-20,0.401611,0.289715,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-20,0.144403,0.172199,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-20,0.339272,0.239093,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-20,0.724844,0.401899,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-20,1.0,0.596309,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-20,0.161613,0.329819,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-20,0.286587,0.456781,role,6,False,Administrator,Ops,M-IT
@@ -379,18 +397,19 @@ C1016,2011-05-20,0.243632,0.487517,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-20,1.0,0.475968,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-20,0.568111,0.806204,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-20,0.009284,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-20,0.0,0.698893,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-21,0.0,0.871828,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-21,0.812075,0.388443,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-21,0.502252,0.520964,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-21,0.0,0.327193,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-21,0.788236,0.184639,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-21,0.924524,0.388443,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-21,0.86276,0.598629,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-21,0.668465,0.927713,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-21,0.234117,0.299819,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-21,0.310741,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-21,0.628579,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-21,1.0,0.478372,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-21,0.86276,0.360152,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-21,0.668465,0.941942,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-21,0.234117,0.255871,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-21,0.310741,0.351738,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-21,0.628579,0.172199,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-21,1.0,0.29419,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-21,0.0,0.205549,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-21,0.268558,0.487517,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-21,0.378979,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -399,18 +418,19 @@ C1016,2011-05-21,0.796212,0.467903,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-21,0.304062,0.487517,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-21,0.339151,0.729916,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-21,0.472201,0.317424,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-21,1.0,0.941942,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-22,0.0,0.871828,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-22,0.317223,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-22,0.0,0.184639,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-22,0.671391,0.388443,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-22,0.453552,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-22,0.590492,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-22,0.330044,0.205549,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-22,1.0,0.927713,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-22,0.0,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-22,0.502684,0.361781,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-22,0.538181,0.467903,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-22,0.0,0.487517,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-22,0.330044,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-22,1.0,0.941942,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-22,0.0,0.258524,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-22,0.502684,0.214424,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-22,0.538181,0.304242,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-22,0.0,0.3262,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-22,0.13293,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-22,0.296448,0.456781,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-22,0.351687,0.566508,role,6,False,Administrator,Ops,M-IT
@@ -419,18 +439,19 @@ C1016,2011-05-22,0.295807,0.49514,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-22,0.0,0.199748,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-22,0.284273,0.806204,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-22,0.703565,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-22,1.0,0.941942,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-23,0.059752,0.889179,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-23,0.0,0.388443,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-23,0.392359,0.520964,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-23,0.475606,0.327193,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-23,0.258331,0.189996,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-23,0.33243,0.388443,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-23,0.151253,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-23,0.934327,0.927713,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-23,0.630826,0.566508,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-23,0.546186,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-23,0.0,0.49754,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-23,0.18714,0.199748,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-23,0.151253,0.271827,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-23,0.934327,0.941942,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-23,0.630826,0.314541,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-23,0.546186,0.351738,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-23,0.0,0.333557,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-23,0.18714,0.178112,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-23,0.622276,0.456781,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-23,0.371344,0.646011,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-23,1.0,0.596309,role,6,False,Administrator,Ops,M-IT
@@ -439,18 +460,19 @@ C1016,2011-05-23,0.0,0.199748,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-23,0.711653,0.526578,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-23,0.237365,0.729916,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-23,0.582005,0.317424,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-23,1.0,0.941942,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-24,0.317323,0.908829,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-24,0.419361,0.255504,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-24,0.726034,0.210592,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-24,0.294629,0.388443,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-24,0.347262,0.497644,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-24,0.174554,0.255504,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-24,0.224167,0.342908,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-24,1.0,0.927713,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-24,0.984284,0.598629,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-24,0.006468,0.332161,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-24,0.247284,0.199748,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-24,0.619442,0.527344,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-24,0.224167,0.239093,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-24,1.0,0.941942,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-24,0.984284,0.44478,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-24,0.006468,0.32172,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-24,0.247284,0.230409,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-24,0.619442,0.330264,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-24,0.074258,0.487517,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-24,1.0,0.532993,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-24,0.213371,0.456781,role,6,False,Administrator,Ops,M-IT
@@ -459,18 +481,19 @@ C1016,2011-05-24,0.396972,0.487517,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-24,0.469127,0.456781,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-24,0.516461,0.806204,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-24,0.345867,0.473809,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-24,1.0,0.941942,role,7,False,Engineer,Platform,M-ENG
 C1000,2011-05-25,0.961332,0.924995,role,6,False,Accountant,AP,M-FIN
 C1001,2011-05-25,0.725135,0.388443,role,6,False,Accountant,AP,M-FIN
 C1002,2011-05-25,0.574986,0.520964,role,6,False,Accountant,AP,M-FIN
 C1003,2011-05-25,0.381009,0.327193,role,6,False,Accountant,AP,M-FIN
 C1004,2011-05-25,0.248599,0.210592,role,6,False,Accountant,AP,M-FIN
 C1005,2011-05-25,0.086972,0.388443,role,6,False,Accountant,AP,M-FIN
-C1006,2011-05-25,0.575269,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1007,2011-05-25,0.934327,0.927713,role,6,False,Engineer,Platform,M-ENG
-C1008,2011-05-25,0.0,0.299819,role,6,False,Engineer,Platform,M-ENG
-C1009,2011-05-25,0.194343,0.543477,role,6,False,Engineer,Platform,M-ENG
-C1010,2011-05-25,0.228671,0.487517,role,6,False,Engineer,Platform,M-ENG
-C1011,2011-05-25,0.099042,0.372977,role,6,False,Engineer,Platform,M-ENG
+C1006,2011-05-25,0.575269,0.172199,role,7,False,Engineer,Platform,M-ENG
+C1007,2011-05-25,0.934327,0.941942,role,7,False,Engineer,Platform,M-ENG
+C1008,2011-05-25,0.0,0.255871,role,7,False,Engineer,Platform,M-ENG
+C1009,2011-05-25,0.194343,0.351738,role,7,False,Engineer,Platform,M-ENG
+C1010,2011-05-25,0.228671,0.230908,role,7,False,Engineer,Platform,M-ENG
+C1011,2011-05-25,0.099042,0.214424,role,7,False,Engineer,Platform,M-ENG
 C1012,2011-05-25,0.772298,0.456781,role,6,False,Administrator,Ops,M-IT
 C1013,2011-05-25,0.20179,0.487517,role,6,False,Administrator,Ops,M-IT
 C1014,2011-05-25,0.0,0.543477,role,6,False,Administrator,Ops,M-IT
@@ -479,3 +502,4 @@ C1016,2011-05-25,0.745288,0.560656,role,6,False,Administrator,Ops,M-IT
 C1017,2011-05-25,0.273537,0.487517,role,6,False,Administrator,Ops,M-IT
 C1018,2011-05-25,0.561478,0.740946,department,8,True,Financial Controller,Treasury,M-FIN
 C1019,2011-05-25,0.174554,0.317424,department,8,True,Financial Controller,Treasury,M-FIN
+U-MOHAMMED,2011-05-25,1.0,0.941942,role,7,False,Engineer,Platform,M-ENG

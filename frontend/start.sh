@@ -20,12 +20,18 @@ if [ ! -f "$ROOT/backend/output/daily_user_scores.csv" ]; then
   "$PYTHON" -m backend --sample
 fi
 
-echo "Starting Person 1 Mock Server (Contract B API on port 8787)..."
-"$PYTHON" frontend/mock_server.py &
-MOCK_PID=$!
-trap 'kill $MOCK_PID 2>/dev/null || true' EXIT
+# Ensure Person 3 database exists and is populated
+if [ ! -f "$ROOT/backend/data/scores.db" ]; then
+  echo "Running Person 3 pipeline to populate risk scores database..."
+  "$PYTHON" backend/pipeline.py
+fi
 
-sleep 0.5
+echo "Starting Person 3 FastAPI Backend (Contract B API on http://127.0.0.1:8787)..."
+"$PYTHON" -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8787 &
+API_PID=$!
+trap 'kill $API_PID 2>/dev/null || true' EXIT
+
+sleep 1
 echo "Starting Vite Frontend Dashboard on http://127.0.0.1:5173..."
 cd "$ROOT/frontend"
 npx vite --host 127.0.0.1 --port 5173

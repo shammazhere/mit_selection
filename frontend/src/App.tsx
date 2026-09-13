@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import CasePage from "./pages/CasePage";
 import QueuePage from "./pages/QueuePage";
+import ThreatSimulatorModal from "./components/ThreatSimulatorModal";
 
 export default function App() {
+  const [isSimOpen, setIsSimOpen] = useState(false);
+
   return (
     <div style={{ minHeight: "100vh", display: "grid", gridTemplateRows: "56px 1fr" }}>
       <header
@@ -41,7 +45,7 @@ export default function App() {
             Investigator Console
           </span>
         </div>
-        <nav style={{ display: "flex", gap: 20, fontSize: 13, fontWeight: 500 }}>
+        <nav style={{ display: "flex", gap: 20, alignItems: "center", fontSize: 13, fontWeight: 500 }}>
           <NavLink
             to="/"
             end
@@ -54,6 +58,25 @@ export default function App() {
           >
             Risk Queue
           </NavLink>
+          <button
+            onClick={() => setIsSimOpen(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "rgba(0, 229, 255, 0.12)",
+              border: "1px solid rgba(0, 229, 255, 0.4)",
+              color: "var(--cyan)",
+              padding: "6px 14px",
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            <span>⚡</span> Threat Simulator
+          </button>
         </nav>
       </header>
       <div style={{ overflowY: "auto" }}>
@@ -62,6 +85,7 @@ export default function App() {
           <Route path="/case/:userId" element={<CasePage />} />
         </Routes>
       </div>
+      <ThreatSimulatorModal isOpen={isSimOpen} onClose={() => setIsSimOpen(false)} />
     </div>
   );
 }

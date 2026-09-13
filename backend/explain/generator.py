@@ -141,7 +141,7 @@ class ExplanationGenerator:
         
         # Add fallback disclosure if applicable
         if fallback_applied:
-            text = f"Compared against {self._describe_cohort_type(cohort_used)} peers; fell back to department-level comparison because the role cohort had only {cohort_size} members"
+            text = f"compared against {self._describe_cohort_type(cohort_used)} peers; fell back to department-level comparison because the role cohort had only {cohort_size} members"
         
         return {
             "text": text,
@@ -159,16 +159,16 @@ class ExplanationGenerator:
     ) -> Dict[str, Any]:
         """Generate drift explanation component."""
         if drift_score >= 0.7:
-            if days_of_drift and days_of_drift >= 5:
-                text = f"has trended upward for {days_of_drift} consecutive days"
+            if days_of_drift and days_of_drift >= 1:
+                text = f"the fused daily score has trended upward for {days_of_drift} consecutive days (sustained drift)"
             else:
-                text = f"shows sustained upward drift pattern"
+                text = f"shows sustained upward drift across consecutive days"
             severity = "high"
         elif drift_score >= 0.4:
-            text = f"shows moderate drift trend"
+            text = f"shows moderate upward drift trend"
             severity = "medium"
         else:
-            text = f"slight drift trend observed"
+            text = f"CUSUM does not show significant upward drift"
             severity = "low"
         
         return {
@@ -188,7 +188,7 @@ class ExplanationGenerator:
     ) -> str:
         """Assess overall severity level."""
         # Weighted combination for severity assessment
-        weighted_sum = self_score * 0.3 + peer_score * 0.3 + drift_score * 0.4
+        weighted_sum = self_score * 0.35 + peer_score * 0.35 + drift_score * 0.30
         
         if weighted_sum >= 0.7:
             return "critical"
@@ -213,28 +213,12 @@ class ExplanationGenerator:
     
     def _build_explanation_text(self, components: Dict[str, Any], role: Optional[str]) -> str:
         """Build final explanation text from components."""
-        parts = []
+        severity = components["severity"]["severity"].capitalize()
+        self_text = components['self_baseline']['text']
+        peer_text = components['peer_baseline']['text']
+        drift_text = components['drift']['text']
         
-        # Start with severity header
-        severity = components["severity"]["severity"]
-        if severity == "critical":
-            parts.append("HIGH ALERT")
-        elif severity == "high":
-            parts.append("Elevated Risk")
-        elif severity == "medium":
-            parts.append("Moderate Risk")
-        else:
-            parts.append("Low Risk")
-        
-        parts.append(f"Flagged: {components['self_baseline']['text']}")
-        
-        # Add peer component
-        parts.append(components['peer_baseline']['text'])
-        
-        # Add drift component
-        parts.append(f"and {components['drift']['text']}.")
-        
-        return " ".join(parts)
+        return f"Flagged at {severity} severity: {self_text}; {peer_text}; and {drift_text}."
 
 
 # Default generator instance

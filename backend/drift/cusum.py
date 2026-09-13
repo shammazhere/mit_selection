@@ -31,12 +31,12 @@ class CUSUMDetector:
     as opposed to single outliers.
     
     Parameters:
-        threshold: Control limit (default: 5)
-        slack: Slack parameter for CUSUM (default: 0.5)
-        mean_est: Estimated mean of in-control process (default: 0.5)
+        threshold: Control limit (default: 0.25, matches Section 7.3 & UI chart)
+        slack: Slack parameter for CUSUM (default: 0.08)
+        mean_est: Estimated mean of in-control process (default: 0.35)
     """
     
-    def __init__(self, threshold: float = 5.0, slack: float = 0.5, mean_est: float = 0.5):
+    def __init__(self, threshold: float = 0.25, slack: float = 0.08, mean_est: float = 0.35):
         self.threshold = threshold
         self.slack = slack
         self.mean_est = mean_est
@@ -59,8 +59,8 @@ class CUSUMDetector:
         cumsum = [0.0]
         for score in scores:
             deviation = score - self.mean_est
-            new_val = max(0, cumsum[-1] + deviation - self.slack)
-            cumsum.append(new_val)
+            new_val = max(0.0, cumsum[-1] + deviation - self.slack)
+            cumsum.append(round(float(new_val), 4))
         return cumsum[1:]  # Exclude initial 0
     
     def detect_drift(self, cumsum_path: List[float]) -> Dict[str, Any]:
@@ -73,7 +73,7 @@ class CUSUMDetector:
         Returns:
             Dictionary with drift detection information
         """
-        max_val = max(cumsum_path)
+        max_val = max(cumsum_path) if cumsum_path else 0.0
         drift_detected = max_val >= self.threshold
         
         days_to_detection = -1
@@ -85,7 +85,7 @@ class CUSUMDetector:
         
         return {
             "drift_detected": drift_detected,
-            "max_cumsum": max_val,
+            "max_cumsum": round(float(max_val), 4),
             "days_to_detection": days_to_detection,
             "raw_path": cumsum_path
         }
@@ -106,11 +106,9 @@ class CUSUMDetector:
             return 0.0
         
         max_val = max(cumsum_path)
-        
-        # Normalize to 0-1 range
-        # Using sigmoid-like transformation with threshold as inflection point
-        normalized = 1 / (1 + np.exp(-(max_val - self.threshold) / (self.threshold / 2)))
-        return round(normalized, 4)
+        # Scale smoothly: reaches ~0.625 at threshold 0.25, and 1.0 at 0.40
+        normalized = min(1.0, max_val / (self.threshold * 1.6))
+        return round(float(normalized), 4)
     
     def process_user(self, user_id: str, scores: List[float]) -> CUSUMResult:
         """
@@ -153,7 +151,7 @@ class CUSUMDetector:
 
 
 # Default global detector instance
-default_detector = CUSUMDetector(threshold=5.0, slack=0.5, mean_est=0.5)
+default_detector = CUSUMDetector(threshold=0.25, slack=0.08, mean_est=0.35)
 
 
 def compute_cusum_for_user(user_id: str, scores: List[float]) -> CUSUMResult:

@@ -9,6 +9,7 @@ Implements the Contract B endpoints:
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
 from datetime import datetime, timedelta
 import os
@@ -16,7 +17,8 @@ import sys
 import json
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE_DIR)
 
 from drift.cusum import compute_cusum_for_user, default_detector
 from fusion.fusion import default_fusion_engine, FusionResult
@@ -39,56 +41,48 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Initialize database
-db = Database("data/scores.db")
+# Enable CORS for frontend dashboard
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Mock user data for demo purposes
-MOCK_USER_DATA = {
-    "u001": {"name": "Alice Chen", "role": "Senior Engineer"},
-    "u002": {"name": "Bob Smith", "role": "IT Administrator"},
-    "u003": {"name": "Carol Johnson", "role": "Financial Analyst"},
-    "u004": {"name": "David Williams", "role": "HR Manager"},
-    "u005": {"name": "Eve Davis", "role": "System Administrator"},
-    "u006": {"name": "Frank Miller", "role": "Software Developer"},
-    "u007": {"name": "Grace Lee", "role": "Project Lead"},
-    "u008": {"name": "Henry Wilson", "role": "Data Scientist"},
-    "u009": {"name": "Ivy Taylor", "role": "Marketing Manager"},
-    "u010": {"name": "Jack Brown", "role": "Network Engineer"}
-}
+# Initialize database
+DB_PATH = os.environ.get("SILENT_SHIFT_DB", os.path.join(BASE_DIR, "data", "scores.db"))
+db = Database(DB_PATH)
 
 
 def _build_event_timeline(risk_score: dict) -> list:
-    """Build simulated event timeline for demo purposes."""
+    """Build simulated event timeline if concrete events not present."""
     timeline = []
     
     # Add events based on score components
-    if risk_score.get("self_score", 0) > 0.7:
+    if risk_score.get("self_score", 0) >= 0.5:
         timeline.append({
-            "timestamp": (datetime.utcnow() - timedelta(days=1)).isoformat(),
-            "event": "Self-baseline anomaly detected - unusual activity pattern",
-            "score_contribution": risk_score.get("self_score")
+            "timestamp": f"{risk_score.get('date', '2011-05-02')}T09:00:00",
+            "event": f"Self-baseline anomaly detected ({risk_score.get('self_score', 0):.2f})"
         })
     
-    if risk_score.get("peer_score", 0) > 0.7:
+    if risk_score.get("peer_score", 0) >= 0.5:
         timeline.append({
-            "timestamp": (datetime.utcnow() - timedelta(days=2)).isoformat(),
-            "event": "Peer-cohort deviation - behavior differs from role peers",
-            "score_contribution": risk_score.get("peer_score")
+            "timestamp": f"{risk_score.get('date', '2011-05-02')}T12:00:00",
+            "event": f"Peer-cohort deviation elevated ({risk_score.get('peer_score', 0):.2f})"
         })
     
-    if risk_score.get("drift_score", 0) > 0.5:
+    if risk_score.get("drift_score", 0) >= 0.25:
         timeline.append({
-            "timestamp": (datetime.utcnow() - timedelta(days=3)).isoformat(),
-            "event": "CUSUM drift detected - sustained upward trend",
-            "score_contribution": risk_score.get("drift_score")
+            "timestamp": f"{risk_score.get('date', '2011-05-02')}T16:00:00",
+            "event": f"CUSUM drift threshold crossed ({risk_score.get('drift_score', 0):.2f})"
         })
     
     # Add fallback disclosure if applicable
     if risk_score.get("fallback_applied", False):
         timeline.append({
-            "timestamp": (datetime.utcnow() - timedelta(days=0)).isoformat(),
-            "event": "Department-level fallback used (role cohort too small)",
-            "score_contribution": None
+            "timestamp": f"{risk_score.get('date', '2011-05-02')}T08:00:00",
+            "event": f"Department-level fallback used (role cohort had only {risk_score.get('cohort_size', 2)} peers)"
         })
     
     return timeline
@@ -98,9 +92,9 @@ def _assess_severity(risk_score: float) -> str:
     """Assess severity level based on risk score."""
     if risk_score >= 80:
         return "critical"
-    elif risk_score >= 60:
+    elif risk_score >= 65:
         return "high"
-    elif risk_score >= 40:
+    elif risk_score >= 50:
         return "medium"
     else:
         return "low"
@@ -111,23 +105,20 @@ async def get_queue(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     min_risk_score: float = Query(0, ge=0, le=100),
-    severity: Optional[str] = Query(None, regex="^(low|medium|high|critical)$")
+    severity: Optional[str] = Query(None, pattern="^(low|medium|high|critical)$")
 ):
     """
     Returns the ranked list for the dashboard's main view.
     
-    Users are sorted by risk_score in descending order.
+    Conforms directly to Contract B:
+    [{ "user_id": "...", "name": "...", "role": "...", "risk_score": 78, "severity": "high", "last_updated": "..." }, ...]
     """
     try:
         # Get all risk scores from database
         risk_scores = db.get_all_risk_scores(limit=limit, offset=offset)
         
         if not risk_scores:
-            return {
-                "items": [],
-                "total_count": 0,
-                "timestamp": datetime.utcnow().isoformat()
-            }
+            return []
         
         # Filter by minimum risk score
         if min_risk_score > 0:
@@ -137,23 +128,28 @@ async def get_queue(
         if severity:
             risk_scores = [r for r in risk_scores if r.get("severity") == severity]
         
-        # Build queue items
+        # Build queue items matching Contract B JSON shape
         queue_items = []
         for score in risk_scores:
+            risk = score.get("risk_score", 0)
+            is_fp = bool(score.get("is_false_positive", False))
+            
             queue_items.append({
                 "user_id": score.get("user_id", ""),
-                "name": score.get("name", "Unknown"),
+                "name": score.get("name") or f"User {score.get('user_id', '')}",
                 "role": score.get("role", "Unknown"),
-                "risk_score": score.get("risk_score", 0),
+                "team": score.get("team", ""),
+                "risk_score": risk,
                 "severity": score.get("severity", "low"),
-                "last_updated": score.get("last_updated", "")
+                "last_updated": score.get("date") or score.get("last_updated", ""),
+                "fallback_applied": score.get("fallback_applied", False),
+                "is_false_positive": is_fp,
+                "feedback_reason": score.get("feedback_reason", "")
             })
         
-        return {
-            "items": queue_items,
-            "total_count": len(queue_items),
-            "timestamp": datetime.utcnow().isoformat()
-        }
+        # Sort descending by risk score
+        queue_items.sort(key=lambda x: x["risk_score"], reverse=True)
+        return queue_items
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching queue: {str(e)}")
@@ -167,21 +163,31 @@ async def get_case(user_id: str):
     Includes score breakdown, explanation, and forensic details.
     """
     try:
-        # Get today's date
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        
-        # Get risk score from database
-        risk_score = db.get_risk_score(user_id, today)
+        # Query latest risk score for user (no hardcoded date)
+        risk_score = db.get_risk_score(user_id)
         
         if not risk_score:
             raise HTTPException(status_code=404, detail=f"Risk score not found for user {user_id}")
         
-        # Build event timeline (simulated for demo)
-        event_timeline = _build_event_timeline(risk_score)
+        # Extract or build event timeline
+        event_timeline = risk_score.get("event_timeline")
+        if not event_timeline or not isinstance(event_timeline, list) or len(event_timeline) == 0:
+            event_timeline = _build_event_timeline(risk_score)
         
-        # Build response
+        # Ensure cusum_path is a list of floats
+        cusum_path = risk_score.get("cusum_path", [])
+        if isinstance(cusum_path, str):
+            try:
+                cusum_path = json.loads(cusum_path)
+            except Exception:
+                cusum_path = []
+        
+        # Build response matching CaseDetail
         return {
             "user_id": risk_score.get("user_id", ""),
+            "name": risk_score.get("name") or f"User {risk_score.get('user_id', '')}",
+            "role": risk_score.get("role", "Unknown"),
+            "team": risk_score.get("team", ""),
             "risk_score": risk_score.get("risk_score", 0),
             "self_score": risk_score.get("self_score", 0),
             "peer_score": risk_score.get("peer_score", 0),
@@ -193,12 +199,14 @@ async def get_case(user_id: str):
             "cohort_size": risk_score.get("cohort_size", 10),
             "fallback_applied": risk_score.get("fallback_applied", False),
             "explanation_text": risk_score.get("explanation_text", ""),
-            "cusum_path": risk_score.get("cusum_path", []),
+            "cusum_path": cusum_path,
             "event_timeline": event_timeline,
             "severity": risk_score.get("severity", "low"),
             "multipliers_applied": risk_score.get("multipliers_applied", {}),
             "score_components": risk_score.get("score_components", {}),
-            "last_updated": risk_score.get("last_updated", "")
+            "is_false_positive": risk_score.get("is_false_positive", False),
+            "feedback_reason": risk_score.get("feedback_reason", ""),
+            "last_updated": risk_score.get("date") or risk_score.get("last_updated", "")
         }
     
     except HTTPException:
@@ -222,7 +230,7 @@ async def post_feedback(feedback: dict):
         if not user_id:
             raise HTTPException(status_code=400, detail="user_id is required")
         
-        # Record feedback in database
+        # Record feedback in database and recalibrate risk score
         feedback_result = db.record_feedback(
             user_id=user_id,
             is_false_positive=is_false_positive,
@@ -230,9 +238,11 @@ async def post_feedback(feedback: dict):
         )
         
         return {
+            "ok": True,
             "status": "success",
             "message": "Feedback recorded successfully",
             "feedback_id": str(feedback_result.get("feedback_id")),
+            "down_weight": feedback_result.get("down_weight", 1.0),
             "timestamp": feedback_result.get("timestamp", "")
         }
     
@@ -240,6 +250,51 @@ async def post_feedback(feedback: dict):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error recording feedback: {str(e)}")
+
+
+@app.post("/simulate_threat")
+async def simulate_threat_endpoint(req: dict):
+    """
+    Inject live custom threat activity for ANY user/actions and execute the full detection pipeline.
+    """
+    try:
+        from simulator import inject_custom_threat
+        
+        name = req.get("name", "Mohammed Shamaz")
+        role = req.get("role", "Engineer")
+        department = req.get("department", "Engineering")
+        team = req.get("team", "Platform")
+        site = req.get("site", "https://wetransfer.com/upload")
+        file_name = req.get("file", "confidential_customer_db.sql")
+        email = req.get("email", "personal_leak@gmail.com")
+        
+        result = inject_custom_threat(
+            name=name,
+            role=role,
+            department=department,
+            team=team,
+            site_visited=site,
+            file_copied=file_name,
+            external_email=email,
+            include_after_hours=req.get("after_hours", True),
+            include_usb=req.get("usb", True),
+            include_removable_media=req.get("removable_media", True),
+            include_cloud_upload=req.get("cloud_upload", True),
+            include_external_email=req.get("external_email", True)
+        )
+        
+        return {
+            "ok": True,
+            "status": "success",
+            "user_id": result.get("user_id"),
+            "name": result.get("name"),
+            "role": result.get("role"),
+            "risk_score": result.get("risk_score"),
+            "severity": result.get("severity"),
+            "explanation_text": result.get("explanation_text")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")
 
 
 @app.get("/health")

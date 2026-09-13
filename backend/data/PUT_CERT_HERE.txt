@@ -1,0 +1,17 @@
+Unzip CERT r4.2 into this folder so it looks like:
+
+  backend/data/cert_r4.2/logon.csv
+  backend/data/cert_r4.2/file.csv
+  backend/data/cert_r4.2/email.csv
+  backend/data/cert_r4.2/http.csv
+  backend/data/cert_r4.2/device.csv
+  backend/data/cert_r4.2/LDAP/*.csv
+
+Download (you must accept CMU's license; the dump is ~16GB):
+  https://kilthub.cmu.edu/articles/dataset/Insider_Threat_Test_Dataset/12841247
+
+Then from the repo root:
+  source .venv/bin/activate
+  python -m backend --data-dir backend/data/cert_r4.2 --out-dir backend/output
+
+Give Person 3: backend/output/daily_user_scores.csv

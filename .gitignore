@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+dist/
+feedback_log.json
+
+# Spec docs — do not push
+Silent_Shift_Idea_Specification_v2.docx
+Silent_Shift_Team_Work_Distribution.docx

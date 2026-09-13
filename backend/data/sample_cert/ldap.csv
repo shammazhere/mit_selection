@@ -1,0 +1,21 @@
+employee_name,user_id,email,role,department,team,supervisor
+User C1000,C1000,c1000@dtaa.com,Accountant,Finance,AP,M-FIN
+User C1001,C1001,c1001@dtaa.com,Accountant,Finance,AP,M-FIN
+User C1002,C1002,c1002@dtaa.com,Accountant,Finance,AP,M-FIN
+User C1003,C1003,c1003@dtaa.com,Accountant,Finance,AP,M-FIN
+User C1004,C1004,c1004@dtaa.com,Accountant,Finance,AP,M-FIN
+User C1005,C1005,c1005@dtaa.com,Accountant,Finance,AP,M-FIN
+User C1006,C1006,c1006@dtaa.com,Engineer,Engineering,Platform,M-ENG
+User C1007,C1007,c1007@dtaa.com,Engineer,Engineering,Platform,M-ENG
+User C1008,C1008,c1008@dtaa.com,Engineer,Engineering,Platform,M-ENG
+User C1009,C1009,c1009@dtaa.com,Engineer,Engineering,Platform,M-ENG
+User C1010,C1010,c1010@dtaa.com,Engineer,Engineering,Platform,M-ENG
+User C1011,C1011,c1011@dtaa.com,Engineer,Engineering,Platform,M-ENG
+User C1012,C1012,c1012@dtaa.com,Administrator,IT,Ops,M-IT
+User C1013,C1013,c1013@dtaa.com,Administrator,IT,Ops,M-IT
+User C1014,C1014,c1014@dtaa.com,Administrator,IT,Ops,M-IT
+User C1015,C1015,c1015@dtaa.com,Administrator,IT,Ops,M-IT
+User C1016,C1016,c1016@dtaa.com,Administrator,IT,Ops,M-IT
+User C1017,C1017,c1017@dtaa.com,Administrator,IT,Ops,M-IT
+User C1018,C1018,c1018@dtaa.com,Financial Controller,Finance,Treasury,M-FIN
+User C1019,C1019,c1019@dtaa.com,Financial Controller,Finance,Treasury,M-FIN

@@ -18,11 +18,12 @@
 3. [The 3-Person Engineering Breakdown](#-the-3-person-engineering-breakdown)
 4. [Live Real-World Spyware Agent (Live Host Monitoring)](#-live-real-world-spyware-agent-live-host-monitoring)
 5. [Dynamic False-Positive Calibration (Alert Fatigue Mitigation)](#-dynamic-false-positive-calibration-alert-fatigue-mitigation)
-6. [Interactive Threat Simulator](#-interactive-threat-simulator)
-7. [Repository Structure](#-repository-structure)
-8. [Quick Start Guide](#-quick-start-guide)
-9. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
-10. [Automated Verification & Test Suite](#-automated-verification--test-suite)
+6. [Time-Series Telemetry & Resilient Queue Deduplication](#-time-series-telemetry--resilient-queue-deduplication)
+7. [Interactive Threat Simulator](#-interactive-threat-simulator)
+8. [Repository Structure](#-repository-structure)
+9. [Quick Start Guide](#-quick-start-guide)
+10. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
+11. [Automated Verification & Test Suite](#-automated-verification--test-suite)
 
 ---
 
@@ -158,6 +159,52 @@ In high-volume enterprise SOCs, alert fatigue causes real threats to be missed. 
 4. **Queue Re-Ranking**: The account falls from the top of the queue down below active investigation targets, labeled with a green `✓ CALIBRATED FP` badge.
 5. **Auditable Forensic Milestone**: An immutable `INVESTIGATOR RESOLUTION` event is appended to the case timeline, and a downward calibration point is plotted on the CUSUM curve.
 6. **Live Sensor Awareness**: The background `live_agent.py` detects the active calibration and maintains the dampened score for subsequent actions, avoiding regressive alert spam.
+
+---
+
+## 🗄️ Time-Series Telemetry & Resilient Queue Deduplication
+
+Enterprise UEBA systems must balance two competing requirements:
+1. **Chronological Time-Series Storage**: Preserving historical daily snapshots for temporal drift analysis, audit trails, and CUSUM curve reconstruction.
+2. **De-Duplicated Triage Experience**: Ensuring security analysts triaging the queue see each employee or host account **exactly once**, displaying their latest evaluated risk score without redundant day-over-day duplicate cards.
+
+### Two-Tier Deduplication Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   SQLite: risk_scores                       │
+│  PK: (user_id, date)                                        │
+│  - C1004 (2026-09-13): 46.0 Medium                          │
+│  - C1004 (2026-09-14): 46.0 Medium  <-- Latest Record       │
+│  - U-MOHAMMED (2026-09-14): 38.4 Low [FP Calibrated]        │
+│  - C1001 (2026-09-14): 22.5 Low                             │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+               SQL Inner Join on MAX(date)
+               GROUP BY user_id
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 FastAPI REST: /queue                        │
+│  Returns 3 Unique Accounts Ranked by Latest Risk Score:     │
+│  1. Elena Vance (C1004)       - 46.0 Medium                 │
+│  2. Mohammed Shamaz (U-MOH)   - 38.4 Low (Calibrated FP)    │
+│  3. Alex Rivera (C1001)       - 22.5 Low                    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+               Defense-in-Depth Map Deduplication
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│             Investigator Console (React UI)                 │
+│  - KPI Counters: 3 Total Flagged Accounts                   │
+│  - Zero Duplicate Rows                                      │
+│  - Dynamic URL Text-Wrapping (No Horizontal Blowout)        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+* **Database Engine**: Uses an `INNER JOIN` on `(SELECT user_id, MAX(date) AS max_date FROM risk_scores GROUP BY user_id)` with `GROUP BY r.user_id` so date rollovers (e.g. crossing midnight) never duplicate accounts in the triage queue.
+* **Frontend Defense-in-Depth**: `QueuePage.tsx` maintains a Map-keyed unique set on `user_id` during state transitions, guaranteeing UI stability even during high-frequency telemetry polling.
+* **Feedback Persistence Across Days**: False-positive resolutions are permanently tracked in the `feedback` audit table, ensuring model down-weighting ($0.4\times$) and green badge indicators carry across date boundaries seamlessly.
 
 ---
 

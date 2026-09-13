@@ -383,7 +383,7 @@ class Person3Pipeline:
             "event_timeline": event_timeline,
             "is_false_positive": down_weight < 1.0,
             "feedback_reason": "",
-            "last_updated": datetime.utcnow().isoformat()
+            "last_updated": datetime.now().isoformat()
         }
     
     def _assess_severity(self, risk_score: float) -> str:

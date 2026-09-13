@@ -156,7 +156,7 @@ class Database:
                 score_data.get("event_timeline", "[]"),
                 score_data.get("is_false_positive", 0),
                 score_data.get("feedback_reason", ""),
-                score_data.get("last_updated") or datetime.utcnow().isoformat()
+                score_data.get("last_updated") or datetime.now().isoformat()
             ))
             
             conn.commit()
@@ -183,14 +183,20 @@ class Database:
             return None
     
     def get_all_risk_scores(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """Get all risk scores with pagination."""
+        """Get latest risk score for each user with pagination."""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
             cursor.execute("""
-                SELECT * FROM risk_scores
-                ORDER BY risk_score DESC
+                SELECT r.* FROM risk_scores r
+                INNER JOIN (
+                    SELECT user_id, MAX(date) AS max_date
+                    FROM risk_scores
+                    GROUP BY user_id
+                ) latest ON r.user_id = latest.user_id AND r.date = latest.max_date
+                GROUP BY r.user_id
+                ORDER BY r.risk_score DESC
                 LIMIT ? OFFSET ?
             """, (limit, offset))
             
@@ -206,8 +212,8 @@ class Database:
         """Record feedback and update down-weight statistics."""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            now = datetime.utcnow().isoformat()
-            feedback_date = datetime.utcnow().strftime("%Y-%m-%d")
+            now = datetime.now().isoformat()
+            feedback_date = datetime.now().strftime("%Y-%m-%d")
             
             # Insert feedback record
             cursor.execute("""

@@ -300,7 +300,7 @@ async def simulate_threat_endpoint(req: dict):
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 
 # Error handlers
@@ -312,7 +312,7 @@ async def not_found_handler(request, exc):
         content={
             "error": "Not Found",
             "message": str(exc.detail),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
     )
 
@@ -324,6 +324,6 @@ async def internal_error_handler(request, exc):
         content={
             "error": "Internal Server Error",
             "message": "An unexpected error occurred. Please try again later.",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
     )

@@ -13,7 +13,15 @@ export default function QueuePage() {
   useEffect(() => {
     const loadQueue = () => {
       fetchQueue()
-        .then((data) => setRows([...data].sort((a, b) => b.risk_score - a.risk_score)))
+        .then((data) => {
+          const map = new Map<string, QueueItem>();
+          for (const item of data) {
+            if (!map.has(item.user_id)) {
+              map.set(item.user_id, item);
+            }
+          }
+          setRows(Array.from(map.values()).sort((a, b) => b.risk_score - a.risk_score));
+        })
         .catch((err: Error) => setError(err.message));
     };
     loadQueue();

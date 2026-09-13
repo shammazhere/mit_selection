@@ -134,8 +134,8 @@ class LiveEndpointAgent:
         now_iso = datetime.now().isoformat()
         with sqlite3.connect(db.db_path) as conn:
             c = conn.cursor()
-            # Prune all legacy dummy accounts or 2011 rows, keeping ONLY self.user_id, C1001, and C1004
-            c.execute('DELETE FROM risk_scores WHERE user_id NOT IN (?, "C1001", "C1004") OR date = "2011-05-25"', (self.user_id,))
+            # Prune all legacy dummy accounts or past date rows, keeping ONLY today's date for self.user_id, C1001, and C1004
+            c.execute('DELETE FROM risk_scores WHERE user_id NOT IN (?, "C1001", "C1004") OR date != ?', (self.user_id, today_date))
             
             # Clean baseline 1: Alex Rivera (Financial Analyst - Low)
             c.execute("""
@@ -223,6 +223,15 @@ class LiveEndpointAgent:
                 is_fp = 1
                 fp_reason = current_score.get("feedback_reason", "")
                 down_weight = 0.4
+            else:
+                with sqlite3.connect(db.db_path) as conn:
+                    c = conn.cursor()
+                    c.execute("SELECT reason FROM feedback WHERE user_id = ? AND is_false_positive = 1 ORDER BY id DESC LIMIT 1", (self.user_id,))
+                    row = c.fetchone()
+                    if row:
+                        is_fp = 1
+                        fp_reason = row[0] or ""
+                        down_weight = 0.4
         except Exception:
             pass
 

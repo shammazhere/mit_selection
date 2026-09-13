@@ -18,6 +18,7 @@ FEEDBACK_PATH = Path(__file__).resolve().parent / "feedback_log.json"
 
 
 class Handler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.0"
     cases: dict = {}
     queue: list = []
 
@@ -37,6 +38,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+        self.wfile.flush()
 
     def do_OPTIONS(self) -> None:
         self.send_response(204)
@@ -83,11 +85,16 @@ class Handler(BaseHTTPRequestHandler):
             except Exception:
                 log = []
         log.append(payload)
-        FEEDBACK_PATH.write_text(json.dumps(log, indent=2), encoding="utf-8")
         try:
-            cases, queue = load_store()
-            Handler.cases = cases
-            Handler.queue = queue
+            FEEDBACK_PATH.write_text(json.dumps(log, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+        try:
+            uid = payload.get("user_id")
+            if uid and uid in Handler.cases:
+                Handler.cases[uid]["is_false_positive"] = True
+                Handler.cases[uid]["feedback_reason"] = payload.get("reason", "")
+                Handler.cases[uid]["risk_score"] = round(Handler.cases[uid]["risk_score"] * 0.4, 1)
         except Exception:
             pass
         self._json(200, {"ok": True})

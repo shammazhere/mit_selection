@@ -81,9 +81,10 @@ class FileActivityHandler(FileSystemEventHandler):
 
 
 class LiveEndpointAgent:
-    def __init__(self, employee_name: str | None = None, role: str | None = None, department: str = "Engineering"):
+    def __init__(self, employee_name: str | None = None, role: str | None = None, department: str = "Engineering", server_url: str | None = None):
         self.system_user = getpass.getuser()
         self.hostname = socket.gethostname()
+        self.server_url = server_url.rstrip("/") if server_url else None
         
         # Read user's real name from OS profile dynamically (no hardcoding)
         if not employee_name:
@@ -247,7 +248,7 @@ class LiveEndpointAgent:
             else:
                 effective_sev = "low"
 
-        db.upsert_risk_score({
+        payload = {
             "user_id": self.user_id,
             "date": now_dt.strftime("%Y-%m-%d"),
             "name": self.employee_name,
@@ -282,7 +283,23 @@ class LiveEndpointAgent:
             "is_false_positive": is_fp,
             "feedback_reason": fp_reason,
             "last_updated": now_iso
-        })
+        }
+        db.upsert_risk_score(payload)
+
+        # If remote server URL provided, stream telemetry over HTTP
+        if self.server_url:
+            try:
+                import urllib.request
+                req_data = json.dumps(payload).encode("utf-8")
+                req = urllib.request.Request(
+                    f"{self.server_url}/telemetry",
+                    data=req_data,
+                    headers={"Content-Type": "application/json"}
+                )
+                with urllib.request.urlopen(req, timeout=3):
+                    pass
+            except Exception:
+                pass
 
 
     def init_chrome_baseline(self):
@@ -578,9 +595,10 @@ def main():
     parser = argparse.ArgumentParser(description="Silent Shift Live Host Sensor")
     parser.add_argument("--name", type=str, default=None, help="Custom employee name (defaults to host OS user)")
     parser.add_argument("--role", type=str, default=None, help="Host role description")
+    parser.add_argument("--server", type=str, default=os.environ.get("SILENT_SHIFT_SERVER_URL", None), help="Remote Silent Shift server URL (e.g. https://silent-shift.onrender.com)")
     args = parser.parse_args()
 
-    agent = LiveEndpointAgent(employee_name=args.name, role=args.role)
+    agent = LiveEndpointAgent(employee_name=args.name, role=args.role, server_url=args.server)
     agent.start()
 
 

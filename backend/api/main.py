@@ -7,14 +7,16 @@ Implements the Contract B endpoints:
 - POST /feedback - Record false positive feedback
 """
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
 from datetime import datetime, timedelta
 import os
 import sys
 import json
+import sqlite3
 
 # Add parent directory to path for imports
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -156,12 +158,17 @@ async def get_queue(
 
 
 @app.get("/case/{user_id}")
-async def get_case(user_id: str):
+async def get_case(user_id: str, request: Request):
     """
     Returns everything the case detail view needs.
     
     Includes score breakdown, explanation, and forensic details.
     """
+    # If a web browser directly visits /case/{user_id}, serve the SPA React app
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept and "application/json" not in accept and os.path.exists(os.path.join(DIST_DIR, "index.html")):
+        return FileResponse(os.path.join(DIST_DIR, "index.html"))
+
     try:
         # Query latest risk score for user (no hardcoded date)
         risk_score = db.get_risk_score(user_id)
@@ -297,10 +304,75 @@ async def simulate_threat_endpoint(req: dict):
         raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")
 
 
+@app.post("/telemetry")
+async def post_telemetry(payload: dict):
+    """
+    Receives live endpoint sensor telemetry from live_agent.py.
+    Enables remote host sensors to stream real-time workstation events into the cloud dashboard.
+    """
+    try:
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="user_id is required")
+        
+        # Check if investigator flagged false positive in feedback table
+        down_weight = 1.0
+        is_fp = False
+        fp_reason = ""
+        with sqlite3.connect(db.db_path) as conn:
+            c = conn.cursor()
+            c.execute("SELECT reason FROM feedback WHERE user_id = ? AND is_false_positive = 1 ORDER BY id DESC LIMIT 1", (user_id,))
+            row = c.fetchone()
+            if row:
+                is_fp = True
+                fp_reason = row[0] or ""
+                down_weight = 0.4
+        
+        if is_fp and "risk_score" in payload:
+            payload["risk_score"] = round(payload["risk_score"] * down_weight, 1)
+            payload["is_false_positive"] = True
+            payload["feedback_reason"] = fp_reason
+            if payload["risk_score"] >= 80:
+                payload["severity"] = "critical"
+            elif payload["risk_score"] >= 65:
+                payload["severity"] = "high"
+            elif payload["risk_score"] >= 50:
+                payload["severity"] = "medium"
+            else:
+                payload["severity"] = "low"
+        
+        db.upsert_risk_score(payload)
+        return {"ok": True, "status": "recorded", "user_id": user_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving telemetry: {str(e)}")
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+
+# Single-server full-stack hosting: Serve React frontend build if present
+DIST_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend", "dist")
+if os.path.exists(DIST_DIR):
+    assets_dir = os.path.join(DIST_DIR, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Allow API routes to be returned normally by FastAPI
+        api_prefixes = ("queue", "case", "feedback", "simulate_threat", "health", "telemetry")
+        if any(full_path == prefix or full_path.startswith(f"{prefix}/") for prefix in api_prefixes):
+            raise HTTPException(status_code=404, detail="API route not found")
+        
+        file_path = os.path.join(DIST_DIR, full_path)
+        if full_path and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(DIST_DIR, "index.html"))
 
 
 # Error handlers
@@ -327,3 +399,10 @@ async def internal_error_handler(request, exc):
             "timestamp": datetime.now().isoformat()
         }
     )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8787))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run("backend.api.main:app", host=host, port=port, reload=False)

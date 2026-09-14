@@ -21,9 +21,10 @@
 6. [Time-Series Telemetry & Resilient Queue Deduplication](#-time-series-telemetry--resilient-queue-deduplication)
 7. [Interactive Threat Simulator](#-interactive-threat-simulator)
 8. [Repository Structure](#-repository-structure)
-9. [Quick Start Guide](#-quick-start-guide)
-10. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
-11. [Automated Verification & Test Suite](#-automated-verification--test-suite)
+9. [Quick Start Guide & Environment Config](#-quick-start-guide--environment-config)
+10. [Cloud Hosting & Production Deployment](#-cloud-hosting--production-deployment)
+11. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
+12. [Automated Verification & Test Suite](#-automated-verification--test-suite)
 
 ---
 
@@ -277,7 +278,7 @@ The dashboard includes a built-in **Threat Simulator** accessible via the header
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start Guide & Environment Config
 
 ### Prerequisites
 * **Python**: 3.10, 3.11, or 3.12
@@ -302,8 +303,26 @@ npm install
 cd ..
 ```
 
-### 2. Launch the Application (One-Command)
-Run the startup script from the root or `frontend` directory:
+### 2. Environment Variables (`.env`) — Is `.env` Needed?
+* **For Local Development: NO `.env` is needed.**  
+  The system is built with **zero-config fallbacks**:
+  - The backend automatically defaults to `http://127.0.0.1:8787` and SQLite at `backend/data/scores.db`.
+  - The frontend Vite dev server automatically proxies `/api` to `http://127.0.0.1:8787`.
+  - You can immediately run the project without creating any `.env` file!
+* **For Cloud Hosting: Environment variables are recommended.**  
+  Templates are provided in `.env.example` and `frontend/.env.example`:
+  ```bash
+  # Root .env (Backend)
+  PORT=8787                               # Dynamically assigned by cloud hosts (e.g. Render/Railway)
+  HOST=0.0.0.0
+  SILENT_SHIFT_DB=backend/data/scores.db  # Database location
+
+  # frontend/.env (Frontend)
+  VITE_API_BASE=/api                      # Set to your hosted API (e.g. https://silent-shift-api.onrender.com)
+  ```
+
+### 3. Launch the Application (One-Command Local Run)
+Run the startup script from the repository root:
 ```bash
 bash frontend/start.sh
 ```
@@ -314,14 +333,61 @@ This automatically:
 
 Open your browser and navigate to **`http://127.0.0.1:5173/`** to access the Investigator Console.
 
-### 3. (Optional) Run the Live Telemetry Agent
-To demonstrate live real-world detection from your own machine, open a separate terminal:
+### 4. (Optional) Run the Live Telemetry Agent
+To demonstrate live real-world spyware detection from your own machine, open a separate terminal:
 ```bash
 source .venv/bin/activate
+
+# Local workstation monitoring:
 python backend/live_agent.py
+
+# Or stream live workstation telemetry to a cloud-hosted server:
+# python backend/live_agent.py --server https://your-hosted-app.onrender.com
 ```
-* Now, plug in a USB flash drive or visit a file-sharing site (e.g. `https://wetransfer.com/`) in Google Chrome.
+* Plug in a USB flash drive or visit a file-sharing site (e.g. `https://wetransfer.com/`) in Google Chrome.
 * The agent detects the event in real time and automatically escalates your risk score on the live dashboard.
+
+---
+
+## 🌐 Cloud Hosting & Production Deployment
+
+### Will It Work the Same as Local?
+**Yes! The entire investigative, analytical, and scoring core works 100% identically in the cloud:**
+
+| Feature / Component | Hosted in Cloud | Behavior & Experience |
+| :--- | :---: | :--- |
+| **Ranked Risk Queue** | ✅ 100% Identical | Live account triage, KPI metrics, dynamic search, and cohort fallback disclosures. |
+| **Case Forensic Dossier** | ✅ 100% Identical | Tri-signal gauges (Self, Peer, Drift), plain-English explanations, and event timelines. |
+| **CUSUM Control Chart** | ✅ 100% Identical | Real-time timestamps, threshold flags, and dark-mode interactive hover tooltips. |
+| **False-Positive Calibration** | ✅ 100% Identical | Analysts click "Calibrate as False Positive", triggering instant 0.4× score dampening and queue re-ranking in the cloud database. |
+| **Interactive Threat Simulator** | ✅ 100% Identical | **Zero setup for judges:** Anyone visiting the hosted URL can open the simulator modal, configure custom attacks (USB + Cloud Upload), and inject threats live! |
+| **Live Host Spyware Sensor** | ✅ Supported via `--server` | Because `live_agent.py` monitors physical hardware on your personal laptop (local USB ports, Chrome history, window manager), run `python backend/live_agent.py --server https://your-app.onrender.com` on your laptop to stream live events straight into the cloud dashboard! |
+
+---
+
+### Deployment Options
+
+#### Option A: Unified Full-Stack Cloud Host (Render / Railway / Docker) — Recommended
+FastAPI can serve both the compiled React SPA and the REST API from a single server port, completely avoiding CORS and multiple domains:
+
+1. **Build frontend & run with Docker**:
+   ```bash
+   docker build -t silent-shift .
+   docker run -p 8787:8787 silent-shift
+   ```
+2. **Deploy on Render (Blueprint)**:
+   - Connect your GitHub repository to [Render.com](https://render.com).
+   - Render automatically reads [`render.yaml`](file:///home/mohammed/Documents/Hackathon/mit/render.yaml), installs dependencies, builds the frontend bundle, and launches `python backend/api/main.py`.
+   - Your full application is live with an SSL HTTPS certificate at `https://<your-subdomain>.onrender.com`!
+
+#### Option B: Decoupled Cloud Hosting (Vercel Frontend + Render Backend)
+* **Frontend (Vercel / Netlify)**:
+  - Connect `frontend/` folder.
+  - Build Command: `npm run build`
+  - Output Directory: `dist`
+  - Environment Variable: `VITE_API_BASE=https://your-backend-api.onrender.com`
+* **Backend (Render / Railway / Fly.io / AWS EC2)**:
+  - Command: `uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT`
 
 ---
 

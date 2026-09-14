@@ -7,22 +7,66 @@ interface LiveDeviceSensorModalProps {
   onSensorUpdate?: (userName: string, riskScore: number) => void;
 }
 
+// Automatically detect OS, kernel/platform, and device hardware model from browser client hints
+function detectHardwareProfile(): { deviceName: string; osKernel: string; role: string; deviceId: string } {
+  const ua = navigator.userAgent;
+  let os = "Linux";
+  let device = "Desktop Workstation";
+
+  if (/Android/i.test(ua)) {
+    os = "Android OS (Linux Kernel)";
+    const match = ua.match(/Android\s([0-9.]+);\s*([^;)]+)/);
+    device = match ? match[2].trim() : "Mobile Device";
+  } else if (/iPhone|iPad/i.test(ua)) {
+    os = "iOS (Darwin Kernel)";
+    device = /iPad/i.test(ua) ? "Apple iPad" : "Apple iPhone";
+  } else if (/Windows NT/i.test(ua)) {
+    const ver = ua.match(/Windows NT ([0-9.]+)/);
+    const winVer = ver && parseFloat(ver[1]) >= 10.0 ? "Windows 11/10" : "Windows";
+    os = `${winVer} (NT Kernel)`;
+    device = "PC Workstation";
+  } else if (/Macintosh/i.test(ua)) {
+    os = "macOS (XNU Kernel)";
+    device = "Apple Mac";
+  } else if (/Linux/i.test(ua)) {
+    os = "Linux (GNU/Linux Kernel)";
+    device = "Linux Workstation";
+  }
+
+  const cores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} Cores` : "";
+  const mem = (navigator as any).deviceMemory ? `${(navigator as any).deviceMemory}GB RAM` : "";
+  const hardwareSpec = [cores, mem].filter(Boolean).join(", ");
+
+  const fullName = `${device} (${os})${hardwareSpec ? ` — ${hardwareSpec}` : ""}`;
+  const rawId = `DEV-${os.replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase()}-${Math.abs(
+    fullName.split("").reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0)
+  )
+    .toString(16)
+    .toUpperCase()
+    .slice(0, 6)}`;
+
+  return {
+    deviceName: fullName,
+    osKernel: os,
+    role: "Enrolled Corporate Device",
+    deviceId: rawId,
+  };
+}
+
 export default function LiveDeviceSensorModal({
   isOpen,
   onClose,
   onSensorUpdate,
 }: LiveDeviceSensorModalProps) {
-  const [name, setName] = useState(
-    () => localStorage.getItem("silent_shift_device_name") || "Evaluator / Guest"
+  const [profile, setProfile] = useState<{ deviceName: string; osKernel: string; role: string; deviceId: string }>(
+    () => detectHardwareProfile()
   );
-  const [role, setRole] = useState(
-    () => localStorage.getItem("silent_shift_device_role") || "Security Evaluator"
-  );
-  const [department] = useState("Auditing");
+
   const [isActive, setIsActive] = useState(
     () => localStorage.getItem("silent_shift_sensor_active") === "true"
   );
   const [statusMessage, setStatusMessage] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"sensor" | "privacy" | "terminal">("sensor");
 
   // Live sensor metrics
   const [riskScore, setRiskScore] = useState(12.0);
@@ -30,7 +74,7 @@ export default function LiveDeviceSensorModal({
   const [events, setEvents] = useState<Array<{ timestamp: string; event: string; category: string }>>([
     {
       timestamp: new Date().toISOString().replace("Z", ""),
-      event: "Live browser endpoint sensor initialized (baseline active)",
+      event: `Hardware sensor initialized for ${profile.deviceName}`,
       category: "baseline",
     },
   ]);
@@ -40,11 +84,33 @@ export default function LiveDeviceSensorModal({
       timestamp: new Date().toISOString().replace("Z", ""),
       value: 0.0,
       label: "BASELINE",
-      event: "Device enrolled in live monitoring",
+      event: "Device enrolled into continuous CUSUM monitoring",
     },
   ]);
 
   const awayStartTimeRef = useRef<number | null>(null);
+
+  // Attempt high-entropy userAgentData async detection if available (Chrome / Edge / Android)
+  useEffect(() => {
+    if ((navigator as any).userAgentData?.getHighEntropyValues) {
+      (navigator as any).userAgentData
+        .getHighEntropyValues(["model", "platform", "platformVersion", "architecture"])
+        .then((hints: any) => {
+          if (hints.model || hints.platform) {
+            const detectedModel = hints.model || "Corporate Workstation";
+            const detectedPlatform = hints.platform || "OS";
+            const detectedArch = hints.architecture ? ` (${hints.architecture})` : "";
+            const newName = `${detectedModel} [${detectedPlatform}${detectedArch}]`;
+            setProfile((prev) => ({
+              ...prev,
+              deviceName: newName,
+              osKernel: `${detectedPlatform} ${hints.platformVersion || ""}`.trim(),
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   // Sync state to backend
   const syncTelemetry = useCallback(
@@ -54,16 +120,15 @@ export default function LiveDeviceSensorModal({
       score = riskScore,
       sev = severity
     ) => {
-      const sanitizedId = "DEV-" + name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10);
       const now = new Date();
       const isAfterHours = now.getHours() < 7 || now.getHours() >= 20;
 
       const payload = {
-        user_id: sanitizedId || "DEV-EVALUATOR",
+        user_id: profile.deviceId,
         date: now.toISOString().slice(0, 10),
-        name: name || "Evaluator Guest",
-        role: role || "Security Evaluator",
-        team: department || "Auditing",
+        name: profile.deviceName,
+        role: profile.role,
+        team: "Hardware Endpoint",
         risk_score: score,
         severity: sev,
         self_score: Math.min(1.0, score / 100),
@@ -90,10 +155,10 @@ export default function LiveDeviceSensorModal({
         },
         explanation_text:
           score >= 80
-            ? `Critical Anomaly on Live Device: Sustained multi-vector behavioral deviation. High data staging and frequent off-task navigation.`
+            ? `Critical Exfiltration Anomaly on ${profile.deviceName}: Multi-vector exfiltration detected. Hardware USB connection and unauthorized external file transfer.`
             : score >= 50
-            ? `Medium Behavioral Elevation: Moderate activity drift detected from enrolled browser session.`
-            : `Routine Baseline Activity: Enrolled live client session within normal personal parameters.`,
+            ? `Medium Behavioral Elevation: Moderate activity drift and off-task browsing detected on ${profile.deviceName}.`
+            : `Routine Baseline Activity: ${profile.deviceName} enrolled and operating within expected behavioral boundaries.`,
         event_timeline: customEvents,
         is_false_positive: false,
         feedback_reason: "",
@@ -103,12 +168,12 @@ export default function LiveDeviceSensorModal({
       try {
         await postTelemetry(payload);
         setStatusMessage("✓ Telemetry synced to central console");
-        if (onSensorUpdate) onSensorUpdate(name, score);
+        if (onSensorUpdate) onSensorUpdate(profile.deviceName, score);
       } catch (err: any) {
         setStatusMessage(`Sync notice: ${err.message}`);
       }
     },
-    [events, cusumPoints, riskScore, severity, name, role, department, onSensorUpdate]
+    [events, cusumPoints, riskScore, severity, profile, onSensorUpdate]
   );
 
   // Monitor real tab visibility changes
@@ -126,15 +191,15 @@ export default function LiveDeviceSensorModal({
           const now = new Date();
           const newEvent = {
             timestamp: now.toISOString().replace("Z", ""),
-            event: `Off-task navigation detected: external tab/window active for ${awaySeconds}s`,
+            event: `Off-task navigation detected: external tab/window active for ${awaySeconds}s on ${profile.osKernel}`,
             category: "http",
           };
           const newCusumPoint = {
             time: now.toLocaleTimeString(),
             timestamp: now.toISOString().replace("Z", ""),
-            value: 0.38,
+            value: 0.42,
             label: "SIGNAL",
-            event: `Off-task switch (${awaySeconds}s)`,
+            event: `Off-task window switch (${awaySeconds}s)`,
           };
 
           const newScore = Math.min(100, Math.max(54.0, riskScore + 22.0));
@@ -154,9 +219,57 @@ export default function LiveDeviceSensorModal({
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [isActive, riskScore, events, cusumPoints, syncTelemetry]);
+  }, [isActive, riskScore, events, cusumPoints, profile, syncTelemetry]);
 
-  // Handle local file drop
+  // Real WebUSB Hardware Insertion / Authorization
+  const handleWebUsbScan = async () => {
+    if (!(navigator as any).usb) {
+      alert("WebUSB API is not supported in this browser. Try Google Chrome, Edge, or Android Chrome.");
+      return;
+    }
+
+    try {
+      // Triggers the real OS hardware authorization popup
+      const device = await (navigator as any).usb.requestDevice({ filters: [] });
+      const now = new Date();
+      const vendorHex = device.vendorId ? `0x${device.vendorId.toString(16).padStart(4, "0")}` : "0x0000";
+      const productHex = device.productId ? `0x${device.productId.toString(16).padStart(4, "0")}` : "0x0000";
+      const prodName = device.productName || "Removable Flash Drive";
+      const mfg = device.manufacturerName ? `${device.manufacturerName} ` : "";
+
+      const newEvent = {
+        timestamp: now.toISOString().replace("Z", ""),
+        event: `Hardware USB Attached: ${mfg}${prodName} (VID: ${vendorHex}, PID: ${productHex}) on ${profile.osKernel}`,
+        category: "device",
+      };
+
+      const newCusumPoint = {
+        time: now.toLocaleTimeString(),
+        timestamp: now.toISOString().replace("Z", ""),
+        value: 0.85,
+        label: "DEVICE",
+        event: `USB Hardware attached: ${prodName}`,
+      };
+
+      const newScore = Math.min(100, Math.max(82.0, riskScore + 35.0));
+      const newSev = newScore >= 80 ? "critical" : "high";
+
+      setRiskScore(newScore);
+      setSeverity(newSev);
+      const updatedEvents = [newEvent, ...events];
+      const updatedCusum = [...cusumPoints, newCusumPoint];
+      setEvents(updatedEvents);
+      setCusumPoints(updatedCusum);
+
+      syncTelemetry(updatedEvents, updatedCusum, newScore, newSev);
+    } catch (err: any) {
+      if (err.name !== "NotFoundError") {
+        setStatusMessage(`Hardware sensor notice: ${err.message}`);
+      }
+    }
+  };
+
+  // Real Local File Staging
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -165,51 +278,19 @@ export default function LiveDeviceSensorModal({
     const sizeKb = Math.round(file.size / 1024);
     const newEvent = {
       timestamp: now.toISOString().replace("Z", ""),
-      event: `Sensitive file staging detected: "${file.name}" (${sizeKb} KB, type: ${file.type || "binary"})`,
+      event: `Sensitive file staging detected: "${file.name}" (${sizeKb} KB, MIME: ${file.type || "binary"}) on ${profile.osKernel}`,
       category: "file",
     };
     const newCusumPoint = {
       time: now.toLocaleTimeString(),
       timestamp: now.toISOString().replace("Z", ""),
-      value: 0.82,
+      value: 0.92,
       label: "EXFILTRATION",
       event: `Staged file: ${file.name}`,
     };
 
-    const newScore = Math.min(100, Math.max(88.0, riskScore + 35.0));
+    const newScore = Math.min(100, Math.max(89.0, riskScore + 35.0));
     const newSev = "critical";
-
-    setRiskScore(newScore);
-    setSeverity(newSev);
-    const updatedEvents = [newEvent, ...events];
-    const updatedCusum = [...cusumPoints, newCusumPoint];
-    setEvents(updatedEvents);
-    setCusumPoints(updatedCusum);
-
-    syncTelemetry(updatedEvents, updatedCusum, newScore, newSev);
-  };
-
-  // Handle clipboard copy of sensitive token
-  const handleCopySensitive = () => {
-    const fakeToken = "SS-CONFIDENTIAL-DB-KEY-89472-X90B-VAULT";
-    navigator.clipboard.writeText(fakeToken);
-
-    const now = new Date();
-    const newEvent = {
-      timestamp: now.toISOString().replace("Z", ""),
-      event: `High-risk clipboard operation: copied sensitive credential token to local clipboard`,
-      category: "device",
-    };
-    const newCusumPoint = {
-      time: now.toLocaleTimeString(),
-      timestamp: now.toISOString().replace("Z", ""),
-      value: 0.65,
-      label: "CLIPBOARD",
-      event: "Credential token copied",
-    };
-
-    const newScore = Math.min(100, Math.max(72.0, riskScore + 20.0));
-    const newSev = newScore >= 80 ? "critical" : "high";
 
     setRiskScore(newScore);
     setSeverity(newSev);
@@ -224,8 +305,6 @@ export default function LiveDeviceSensorModal({
   const handleEnroll = () => {
     setIsActive(true);
     localStorage.setItem("silent_shift_sensor_active", "true");
-    localStorage.setItem("silent_shift_device_name", name);
-    localStorage.setItem("silent_shift_device_role", role);
     syncTelemetry(events, cusumPoints, riskScore, severity);
   };
 
@@ -258,21 +337,21 @@ export default function LiveDeviceSensorModal({
         className="card"
         style={{
           width: "100%",
-          maxWidth: 680,
+          maxWidth: 720,
           background: "var(--panel)",
           border: "1px solid var(--line)",
           borderRadius: 12,
           boxShadow: "0 24px 48px rgba(0, 0, 0, 0.5)",
           display: "flex",
           flexDirection: "column",
-          maxHeight: "90vh",
+          maxHeight: "92vh",
           overflow: "hidden",
         }}
       >
         {/* Header */}
         <div
           style={{
-            padding: "20px 24px",
+            padding: "18px 24px",
             borderBottom: "1px solid var(--line)",
             display: "flex",
             justifyContent: "space-between",
@@ -280,13 +359,13 @@ export default function LiveDeviceSensorModal({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>📡</span>
+            <span style={{ fontSize: 22 }}>🛡️</span>
             <div>
               <h2 style={{ fontSize: 16, margin: 0, fontWeight: 600 }}>
-                Live In-Browser Endpoint Sensor (Multi-User Detection)
+                Enterprise Endpoint Telemetry & Device Enrollment
               </h2>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
-                Enrolls this exact browser device as an active monitored employee in the real detection engine.
+                Automatically detects hardware specification & streams real behavioral drift into the central UEBA console.
               </p>
             </div>
           </div>
@@ -304,316 +383,345 @@ export default function LiveDeviceSensorModal({
           </button>
         </div>
 
-        {/* Content Body */}
-        <div style={{ padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Identity Enrollment */}
-          <div
+        {/* Tab Selector */}
+        <div style={{ display: "flex", borderBottom: "1px solid var(--line)", background: "var(--bg-subtle)" }}>
+          <button
+            onClick={() => setActiveTab("sensor")}
             style={{
-              background: "var(--bg-subtle)",
-              padding: 16,
-              borderRadius: 8,
-              border: "1px solid var(--line)",
+              flex: 1,
+              padding: "10px 16px",
+              background: activeTab === "sensor" ? "var(--panel)" : "transparent",
+              border: "none",
+              borderBottom: activeTab === "sensor" ? "2px solid var(--cyan)" : "none",
+              color: activeTab === "sensor" ? "var(--cyan)" : "var(--muted)",
+              fontWeight: 600,
+              fontSize: 12,
+              cursor: "pointer",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <strong style={{ fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                1. Device Enrollment
-              </strong>
-              {isActive ? (
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: 11,
-                    padding: "2px 8px",
-                    borderRadius: 4,
-                    background: "rgba(82, 183, 136, 0.15)",
-                    color: "var(--low)",
-                    border: "1px solid rgba(82, 183, 136, 0.3)",
-                  }}
-                >
-                  ● SENSOR ACTIVE ON THIS DEVICE
-                </span>
-              ) : (
-                <span className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>
-                  ○ UNENROLLED
-                </span>
-              )}
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>
-                  Your Name / Identity:
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Judge Dave, Dr. Alex"
-                  style={{
-                    width: "100%",
-                    background: "var(--panel)",
-                    border: "1px solid var(--line)",
-                    borderRadius: 6,
-                    padding: "8px 12px",
-                    color: "var(--text)",
-                    fontSize: 13,
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 4 }}>
-                  Assigned Employee Role:
-                </label>
-                <input
-                  type="text"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  placeholder="e.g. Security Auditor, Financial Analyst"
-                  style={{
-                    width: "100%",
-                    background: "var(--panel)",
-                    border: "1px solid var(--line)",
-                    borderRadius: 6,
-                    padding: "8px 12px",
-                    color: "var(--text)",
-                    fontSize: 13,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "center" }}>
-              {!isActive ? (
-                <button
-                  onClick={handleEnroll}
-                  style={{
-                    background: "var(--cyan)",
-                    color: "#0a0e14",
-                    border: "none",
-                    padding: "8px 18px",
-                    borderRadius: 6,
-                    fontWeight: 600,
-                    fontSize: 12,
-                    cursor: "pointer",
-                  }}
-                >
-                  ⚡ Activate Sensor for My Device
-                </button>
-              ) : (
-                <button
-                  onClick={handleDeactivate}
-                  style={{
-                    background: "rgba(224, 86, 96, 0.15)",
-                    color: "var(--critical)",
-                    border: "1px solid rgba(224, 86, 96, 0.3)",
-                    padding: "8px 16px",
-                    borderRadius: 6,
-                    fontWeight: 600,
-                    fontSize: 12,
-                    cursor: "pointer",
-                  }}
-                >
-                  Pause Sensor
-                </button>
-              )}
-              {statusMessage && (
-                <span className="mono" style={{ fontSize: 11, color: "var(--low)" }}>
-                  {statusMessage}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Interactive Live Triggers */}
-          <div
+            📡 Live Device Sensor
+          </button>
+          <button
+            onClick={() => setActiveTab("privacy")}
             style={{
-              background: "var(--bg-subtle)",
-              padding: 16,
-              borderRadius: 8,
-              border: "1px solid var(--line)",
-              opacity: isActive ? 1 : 0.5,
-              pointerEvents: isActive ? "auto" : "none",
+              flex: 1,
+              padding: "10px 16px",
+              background: activeTab === "privacy" ? "var(--panel)" : "transparent",
+              border: "none",
+              borderBottom: activeTab === "privacy" ? "2px solid var(--cyan)" : "none",
+              color: activeTab === "privacy" ? "var(--cyan)" : "var(--muted)",
+              fontWeight: 600,
+              fontSize: 12,
+              cursor: "pointer",
             }}
           >
-            <strong style={{ display: "block", fontSize: 13, letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 10 }}>
-              2. Test Real Live Triggers On This Device
-            </strong>
-            <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 14px" }}>
-              Perform any of these real actions to watch the detection engine react to YOUR device in real time:
-            </p>
+            ⚖️ Privacy & Ethics Defense
+          </button>
+          <button
+            onClick={() => setActiveTab("terminal")}
+            style={{
+              flex: 1,
+              padding: "10px 16px",
+              background: activeTab === "terminal" ? "var(--panel)" : "transparent",
+              border: "none",
+              borderBottom: activeTab === "terminal" ? "2px solid var(--cyan)" : "none",
+              color: activeTab === "terminal" ? "var(--cyan)" : "var(--muted)",
+              fontWeight: 600,
+              fontSize: 12,
+              cursor: "pointer",
+            }}
+          >
+            💻 Laptop Native Agent
+          </button>
+        </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {/* Trigger 1: Tab switch */}
-              <div
-                style={{
-                  padding: "10px 14px",
-                  background: "var(--panel)",
-                  borderRadius: 6,
-                  border: "1px solid var(--line)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: 13 }}>👉 Real Tab Switching (Off-Task Drift)</strong>
-                  <div style={{ fontSize: 11, color: "var(--muted)" }}>
-                    Switch to another tab (e.g. YouTube or Gmail) for 5 seconds and come back.
-                  </div>
-                </div>
-                <span className="mono" style={{ fontSize: 11, color: "var(--cyan)" }}>
-                  Listening (Auto)
-                </span>
-              </div>
-
-              {/* Trigger 2: File Drop */}
-              <div
-                style={{
-                  padding: "12px 14px",
-                  background: "var(--panel)",
-                  borderRadius: 6,
-                  border: "1px dashed var(--cyan)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: 13 }}>👉 Drop Any Real File (Exfiltration Staging)</strong>
-                  <div style={{ fontSize: 11, color: "var(--muted)" }}>
-                    Select or drag any PDF, image, or text file from your computer.
-                  </div>
-                </div>
-                <label
-                  style={{
-                    background: "rgba(0, 229, 255, 0.12)",
-                    border: "1px solid rgba(0, 229, 255, 0.4)",
-                    color: "var(--cyan)",
-                    padding: "6px 14px",
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Browse File
-                  <input type="file" onChange={handleFileUpload} style={{ display: "none" }} />
-                </label>
-              </div>
-
-              {/* Trigger 3: Clipboard */}
-              <div
-                style={{
-                  padding: "10px 14px",
-                  background: "var(--panel)",
-                  borderRadius: 6,
-                  border: "1px solid var(--line)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: 13 }}>👉 Clipboard Exfiltration</strong>
-                  <div style={{ fontSize: 11, color: "var(--muted)" }}>
-                    Test copying sensitive security tokens to your system clipboard.
-                  </div>
-                </div>
-                <button
-                  onClick={handleCopySensitive}
-                  style={{
-                    background: "rgba(235, 179, 56, 0.15)",
-                    border: "1px solid rgba(235, 179, 56, 0.4)",
-                    color: "var(--medium)",
-                    padding: "6px 14px",
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  Copy Secret Token
-                </button>
-              </div>
-            </div>
-
-            {/* Current Score preview */}
+        {/* Tab 1: Live Sensor */}
+        {activeTab === "sensor" && (
+          <div style={{ padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Auto-detected Hardware Badge */}
             <div
               style={{
-                marginTop: 16,
-                padding: "12px 16px",
-                borderRadius: 6,
-                background: "rgba(0, 0, 0, 0.3)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                background: "var(--bg-subtle)",
+                padding: 16,
+                borderRadius: 8,
+                border: "1px solid var(--line)",
               }}
             >
-              <div>
-                <span style={{ fontSize: 12, color: "var(--muted)" }}>Your Current Risk Score:</span>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>
-                    {riskScore.toFixed(1)}/100
-                  </span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "var(--cyan)" }}>
+                  Auto-Discovered Device Hardware
+                </span>
+                {isActive ? (
                   <span
                     className="mono"
                     style={{
                       fontSize: 11,
-                      textTransform: "uppercase",
-                      color:
-                        severity === "critical"
-                          ? "var(--critical)"
-                          : severity === "high"
-                          ? "var(--high)"
-                          : severity === "medium"
-                          ? "var(--medium)"
-                          : "var(--low)",
+                      padding: "2px 8px",
+                      borderRadius: 4,
+                      background: "rgba(82, 183, 136, 0.15)",
+                      color: "var(--low)",
+                      border: "1px solid rgba(82, 183, 136, 0.3)",
                     }}
                   >
-                    [{severity}]
+                    ● ENROLLED & STREAMING
+                  </span>
+                ) : (
+                  <span className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>
+                    ○ NOT ENROLLED
+                  </span>
+                )}
+              </div>
+
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)" }}>
+                {profile.deviceName}
+              </div>
+              <div className="mono" style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
+                Device ID: {profile.deviceId} | OS Kernel: {profile.osKernel}
+              </div>
+
+              <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
+                {!isActive ? (
+                  <button
+                    onClick={handleEnroll}
+                    style={{
+                      background: "var(--cyan)",
+                      color: "#0a0e14",
+                      border: "none",
+                      padding: "8px 18px",
+                      borderRadius: 6,
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Authorize & Enroll This Device
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleDeactivate}
+                    style={{
+                      background: "rgba(224, 86, 96, 0.15)",
+                      color: "var(--critical)",
+                      border: "1px solid rgba(224, 86, 96, 0.3)",
+                      padding: "8px 16px",
+                      borderRadius: 6,
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Pause Telemetry
+                  </button>
+                )}
+                {statusMessage && (
+                  <span className="mono" style={{ fontSize: 11, color: "var(--low)" }}>
+                    {statusMessage}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Hardware-Level Triggers */}
+            <div
+              style={{
+                background: "var(--bg-subtle)",
+                padding: 16,
+                borderRadius: 8,
+                border: "1px solid var(--line)",
+                opacity: isActive ? 1 : 0.5,
+                pointerEvents: isActive ? "auto" : "none",
+              }}
+            >
+              <strong style={{ display: "block", fontSize: 12, textTransform: "uppercase", color: "var(--muted)", marginBottom: 10 }}>
+                Test Real Hardware & Behavioral Triggers
+              </strong>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {/* Real WebUSB Hardware Prompt */}
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    background: "var(--panel)",
+                    borderRadius: 6,
+                    border: "1px solid var(--line)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: 13 }}>🔌 Physical USB Hardware Detection (WebUSB)</strong>
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                      Requests native OS USB authorization to read real hardware VID/PID.
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleWebUsbScan}
+                    style={{
+                      background: "rgba(0, 229, 255, 0.12)",
+                      border: "1px solid rgba(0, 229, 255, 0.4)",
+                      color: "var(--cyan)",
+                      padding: "6px 14px",
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Authorize USB Scan
+                  </button>
+                </div>
+
+                {/* Tab focus drift */}
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    background: "var(--panel)",
+                    borderRadius: 6,
+                    border: "1px solid var(--line)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: 13 }}>🌐 Tab Switching & Off-Task Window Drift</strong>
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                      Switch to another browser tab for 5 seconds and return.
+                    </div>
+                  </div>
+                  <span className="mono" style={{ fontSize: 11, color: "var(--cyan)" }}>
+                    Active (Auto)
                   </span>
                 </div>
+
+                {/* File Drop */}
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    background: "var(--panel)",
+                    borderRadius: 6,
+                    border: "1px dashed var(--line)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: 13 }}>📁 Local File Staging Detection</strong>
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                      Select any real file from your computer to test exfiltration staging.
+                    </div>
+                  </div>
+                  <label
+                    style={{
+                      background: "var(--panel)",
+                      border: "1px solid var(--line)",
+                      color: "var(--text)",
+                      padding: "6px 14px",
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Select File
+                    <input type="file" onChange={handleFileUpload} style={{ display: "none" }} />
+                  </label>
+                </div>
               </div>
-              <button
-                onClick={() => {
-                  onClose();
-                  window.location.href = `/#/case/DEV-${name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10)}`;
-                }}
+
+              {/* Score bar */}
+              <div
                 style={{
-                  background: "var(--cyan)",
-                  color: "#0a0e14",
-                  border: "none",
-                  padding: "6px 14px",
+                  marginTop: 14,
+                  padding: "10px 14px",
                   borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
+                  background: "rgba(0, 0, 0, 0.4)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
-                View My Case File →
-              </button>
+                <div>
+                  <span style={{ fontSize: 11, color: "var(--muted)" }}>Live Fused Risk Score:</span>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text)" }}>
+                    {riskScore.toFixed(1)}/100{" "}
+                    <span className="mono" style={{ fontSize: 11, textTransform: "uppercase" }}>
+                      [{severity}]
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    onClose();
+                    window.location.href = `/#/case/${profile.deviceId}`;
+                  }}
+                  style={{
+                    background: "var(--cyan)",
+                    color: "#0a0e14",
+                    border: "none",
+                    padding: "6px 14px",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Inspect Case in Queue →
+                </button>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Option for laptop terminal users */}
-          <div
-            style={{
-              background: "var(--bg-subtle)",
-              padding: 14,
-              borderRadius: 8,
-              border: "1px solid var(--line)",
-            }}
-          >
-            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", marginBottom: 6 }}>
-              💻 WANT TO MONITOR PHYSICAL USB & DESKTOP WINDOWS ON A LAPTOP?
+        {/* Tab 2: Privacy & Ethics Defense */}
+        {activeTab === "privacy" && (
+          <div style={{ padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text)" }}>
+              <strong>How Silent Shift Defends Employee Privacy & Security:</strong>
             </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 12, color: "var(--muted)" }}>
+              <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
+                <strong style={{ color: "var(--low)" }}>1. Zero Content Inspection & Zero Keystroke Logging:</strong>
+                <div>Silent Shift monitors <em>metadata</em> (file size, domain visited, USB vendor ID), NEVER private messages, emails, keystrokes, or screen recordings.</div>
+              </div>
+
+              <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
+                <strong style={{ color: "var(--low)" }}>2. Dual-Baseline Fairness (No Black-Box Accusations):</strong>
+                <div>Behavior is scored against the employee's own 90-day personal baseline AND peer cohorts. Small cohorts (&lt;5 members) automatically disclose transparent fallbacks to prevent bias.</div>
+              </div>
+
+              <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
+                <strong style={{ color: "var(--low)" }}>3. Human-in-the-Loop False Positive Calibration:</strong>
+                <div>The engine does not take automated punitive actions. When an investigator marks legitimate activity, the 0.4x dampening factor instantly protects the employee from alert fatigue.</div>
+              </div>
+
+              <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
+                <strong style={{ color: "var(--low)" }}>4. Enterprise AUP & Permission Boundaries:</strong>
+                <div>Operates strictly within corporate Acceptable Use Policies (AUP) and standard W3C browser permission prompts with explicit user consent.</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Laptop Native Terminal Agent */}
+        {activeTab === "terminal" && (
+          <div style={{ padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ fontSize: 13, color: "var(--text)" }}>
+              <strong>Run the Native EDR Sensor on Your Laptop:</strong>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
+              To monitor real OS desktop window titles, local Chrome history, and Linux/Mac storage mount points directly from your operating system:
+            </p>
+
             <div
               className="mono"
               style={{
-                fontSize: 11,
+                fontSize: 12,
                 background: "rgba(0, 0, 0, 0.4)",
-                padding: "8px 12px",
+                padding: "12px 14px",
                 borderRadius: 6,
                 border: "1px solid var(--line)",
                 overflowX: "auto",
@@ -623,8 +731,14 @@ export default function LiveDeviceSensorModal({
             >
               curl -sSL {window.location.origin}/agent.py | python3 -
             </div>
+
+            <div style={{ fontSize: 11, color: "var(--muted)" }}>
+              • Automatically discovers your host OS username and hostname via <code>getpass</code> &amp; <code>socket</code>.<br />
+              • Zero manual name entry required — reads your real machine identity.<br />
+              • Streams encrypted HTTPS telemetry back to the centralized dashboard.
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

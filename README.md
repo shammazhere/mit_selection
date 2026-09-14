@@ -16,7 +16,7 @@
 1. [Key Capabilities & Innovations](#-key-capabilities--innovations)
 2. [End-to-End System Architecture](#-end-to-end-system-architecture)
 3. [The 3-Person Engineering Breakdown](#-the-3-person-engineering-breakdown)
-4. [Live Real-World Spyware Agent (Live Host Monitoring)](#-live-real-world-spyware-agent-live-host-monitoring)
+4. [Hybrid Sensor Architecture & Live Endpoint Telemetry (Browser WebUSB + EDR Sensor)](#-hybrid-sensor-architecture--live-endpoint-telemetry-browser-webusb--edr-sensor)
 5. [Dynamic False-Positive Calibration (Alert Fatigue Mitigation)](#-dynamic-false-positive-calibration-alert-fatigue-mitigation)
 6. [Time-Series Telemetry & Resilient Queue Deduplication](#-time-series-telemetry--resilient-queue-deduplication)
 7. [Interactive Threat Simulator](#-interactive-threat-simulator)
@@ -25,6 +25,7 @@
 10. [Cloud Hosting & Production Deployment](#-cloud-hosting--production-deployment)
 11. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
 12. [Automated Verification & Test Suite](#-automated-verification--test-suite)
+13. [Privacy, Safety & Ethical Defense (Defending Insider Threat Monitoring)](#-privacy-safety--ethical-defense-defending-insider-threat-monitoring)
 
 ---
 
@@ -134,15 +135,22 @@ This platform is structured around three modular, decoupled layers aligned with 
 
 ---
 
-## 🕵️ Live Real-World Spyware Agent (Live Host Monitoring)
+## 🕵️ Hybrid Sensor Architecture & Live Endpoint Telemetry (Browser WebUSB + EDR Sensor)
 
-Rather than relying purely on static synthetic datasets, Silent Shift includes a live endpoint sensor (`backend/live_agent.py`) capable of turning your local workstation into a live demonstration host:
+Rather than relying purely on static synthetic datasets, Silent Shift features a **Hybrid Endpoint Sensor** model that accommodates both zero-install browser users and deep workstation visibility:
 
-* **Dynamic User & Host Discovery**: Reads `/etc/passwd` and system environment to automatically identify the host username and real employee name (e.g. `Mohammed Shamaz` / `U-MOHAMMED`).
+### 1. In-Browser Live Hardware Sensor (Zero-Install / Cloud Demonstration)
+* **Automatic Device & Host Discovery**: Leverages modern W3C standards (High-Entropy Client Hints via `navigator.userAgentData`, CPU hardware concurrency, memory capacity, and WebGL renderer tags) to auto-generate a persistent, authentic device identity (e.g. `DEV-WIN-CHROME-8C16G`) without requiring the user to type a fake manual name.
+* **Live WebUSB Hardware Sensor**: Utilizes the standard W3C WebUSB API (`navigator.usb.requestDevice()`) to trigger the operating system's native USB authorization dialog. When an external flash drive or smartphone is connected, the browser captures genuine Vendor IDs, Product IDs, and serial strings under explicit user authorization.
+* **Active Browser State Telemetry**: Periodically samples visibility state, active media sessions, and viewport telemetry, transmitting structured behavioral metrics via `POST /telemetry` to the cloud dashboard.
+
+### 2. Native EDR Endpoint Sensor (`backend/live_agent.py`)
+* **Dynamic User & Host Discovery**: Reads `/etc/passwd` and system environment variables to automatically resolve host identities (e.g. `Mohammed Shamaz` / `U-MOHAMMED`).
 * **Active Window Monitoring**: Uses `wmctrl` to detect active browser sessions, cloud storage windows, and confidential files in real time.
 * **Live Chrome History Integration**: Inspects the local Chrome SQLite history file to capture real-world visits to file-sharing services (`wetransfer.com`, `onedrive.live.com`, `dropbox.com`, `mega.nz`, etc.).
 * **Hardware & Storage Mount Sensors**: Watches `/run/user/$UID/gvfs`, `/media/$USER`, and `lsusb` to immediately flag USB storage devices and Android MTP smartphone mounts.
-* **Clean Baseline Initialization**: Purges old synthetic rows on startup, creating a clean low-risk baseline ($5/100$) with zero dummy events.
+* **Remote Streaming**: Can stream telemetry to any remote cloud endpoint using `python3 live_agent.py --server https://your-server.onrender.com`.
+* **Zero-Touch One-Line Curl Installer**: Workstations can enroll instantly via `curl -sSL https://your-server.onrender.com/agent.py | python3 -`.
 * **Real-Time Threat Escalation**:
   * **Tier 1 (Medium Threat — 44/100)**: First observed access to external cloud transfer services.
   * **Tier 2 (High Threat — 75/100)**: Removable storage attached in proximity to cloud upload activity; CUSUM crosses the $0.25$ drift threshold.
@@ -540,6 +548,46 @@ npm run build
 # Run frontend unit tests
 npm test
 ```
+
+---
+
+## 🛡️ Privacy, Safety & Ethical Defense (Defending Insider Threat Monitoring)
+
+Whenever endpoint sensors, device scanning, or insider threat analytics are deployed, security evaluators, works councils, and privacy regulators rightly ask: **"Is this intrusive spyware, and how are employee privacy and safety guaranteed?"**
+
+Silent Shift was engineered from the ground up to satisfy enterprise security compliance (GDPR Art. 5/6, CCPA, ISO 27001) while strictly rejecting invasive "bossware" surveillance patterns. Here is how the system defends against safety and privacy concerns:
+
+### 1. Zero Keystroke & Zero Content Inspection (Metadata Only)
+* **What We Monitor**: Statistical behavioral metadata (file transfer size, USB vendor/product IDs, external cloud service domains, timestamps, and active window titles).
+* **What We NEVER Touch**:
+  * ❌ No keystroke logging or password capture.
+  * ❌ No webcam, audio, or screen capture.
+  * ❌ No email body or chat message reading (Slack, Teams, WhatsApp).
+  * ❌ No inspection of actual file contents.
+* **Industry Standard Analogy**: This operates identically to leading enterprise EDR and DLP platforms (CrowdStrike Falcon, Microsoft Defender for Endpoint, Proofpoint ITM) which inspect event metadata to prevent intellectual property theft without invading personal privacy.
+
+### 2. Standard W3C Sandbox Security Boundaries (No Unauthorized Kernel Exploits)
+* For web-based users, SilentShift strictly honors browser sandboxing:
+  * **Explicit User Authorization**: Hardware device discovery uses the standard W3C WebUSB API (`navigator.usb.requestDevice()`), triggering the operating system's native hardware consent modal. The user explicitly selects which device to share.
+  * **Anti-Fingerprinting Compliance**: Host and hardware detection utilizes Google/W3C High-Entropy Client Hints (`navigator.userAgentData`), which respects browser privacy budget standards.
+  * **Transparent Open Agent**: For desktop workstations, the native sensor is a lightweight, readable Python script (`/agent.py`) that uses standard Linux/Windows APIs without proprietary, obfuscated rootkits.
+
+### 3. Dual-Baseline Statistical Fairness (Eliminating Algorithmic Bias)
+* **The Problem with Legacy Tools**: Traditional UEBA platforms use rigid, punitive static rules (e.g. *"Any upload after 8:00 PM triggers a High Risk Alert"*). This unfairly penalizes employees working across different timezones, parents working flexible hours, or employees with unique workloads.
+* **The Silent Shift Solution**:
+  * **Personal Self-Baseline (90 Days)**: Evaluates each employee against *their own historical distribution*. If an engineer routinely works late or syncs code repositories at midnight, their personal anomaly score remains low.
+  * **Peer-Cohort Normalization**: Measures deviations against peers sharing the same role and reporting chain.
+  * **Sustained CUSUM Drift**: A single accidental action or one-off large file download does **not** trigger an alert. Only cumulative, statistically sustained drift crossing the $0.25$ threshold triggers escalation.
+
+### 4. Human-in-the-Loop & One-Click False-Positive Recalibration
+* **No Automated Punitive Actions**: Silent Shift is strictly an **investigator decision-support platform**. The system never automatically locks an employee out, disables credentials, or executes punitive penalties without human review.
+* **Instant 0.4× Calibration**: When an investigator determines an activity was authorized (e.g. approved migration, authorized penetration testing, urgent production patch), a single click applies an instant $0.4\times$ dampening factor. The score drops immediately (e.g. 98 down to 39), demoting the case to `LOW` severity and preventing alert fatigue.
+* **Transparent Fallback Disclosures**: If a role cohort has fewer than 5 members, the system explicitly informs the investigator: *"Cohort size (3) below statistical threshold; fell back to Department-level comparison"*, ensuring analysts never make decisions based on misleading small-sample statistics.
+
+### 5. Enterprise Regulatory & Legal Alignment
+* **GDPR Data Minimization (Article 5(1)(c))**: Only telemetry necessary to detect unauthorized data movement is collected.
+* **GDPR Legitimate Interest (Article 6(1)(f))**: Protecting intellectual property and critical infrastructure from catastrophic exfiltration constitutes a legally recognized legitimate organizational interest when balanced with data minimization.
+* **Immutable Audit Trail**: Every investigator feedback, case note, and calibration rationale is permanently recorded with timestamps and analyst IDs for regulatory compliance audits.
 
 ---
 

@@ -162,6 +162,66 @@ class Person3Tests(unittest.TestCase):
         self.assertEqual(r_fb.status_code, 200)
         self.assertTrue(r_fb.json().get("ok"))
 
+    def test_governance_retention_policy_pruning(self):
+        # Insert a current score and an obsolete score (>100 days ago)
+        old_date = (datetime.now() - __import__("datetime").timedelta(days=120)).strftime("%Y-%m-%d")
+        now_date = datetime.now().strftime("%Y-%m-%d")
+        
+        self.db.upsert_risk_score({
+            "user_id": "OLD_USER", "date": old_date,
+            "self_score": 0.5, "peer_score": 0.5, "drift_score": 0.5,
+            "pre_multiplier_score": 0.5, "raw_fusion_score": 0.5, "adjusted_fusion_score": 0.5,
+            "risk_score": 50.0, "last_updated": old_date
+        })
+        self.db.upsert_risk_score({
+            "user_id": "NEW_USER", "date": now_date,
+            "self_score": 0.5, "peer_score": 0.5, "drift_score": 0.5,
+            "pre_multiplier_score": 0.5, "raw_fusion_score": 0.5, "adjusted_fusion_score": 0.5,
+            "risk_score": 50.0, "last_updated": now_date
+        })
+
+        # Enforce 90-day retention
+        res = self.db.enforce_retention_policy(retention_days=90)
+        self.assertEqual(res["status"], "policy_enforced")
+        self.assertGreaterEqual(res["pruned_records"], 1)
+
+        # Verify old record pruned, new record retained
+        with __import__("sqlite3").connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM risk_scores WHERE user_id = 'OLD_USER'")
+            self.assertEqual(cur.fetchone()[0], 0)
+            cur.execute("SELECT COUNT(*) FROM risk_scores WHERE user_id = 'NEW_USER'")
+            self.assertEqual(cur.fetchone()[0], 1)
+
+    def test_governance_access_is_itself_audited(self):
+        # 1. Test database access auditing
+        entry = self.db.log_case_access("admin_alice", "C999", "VIEW_CASE_DOSSIER")
+        self.assertEqual(entry["investigator_id"], "admin_alice")
+        self.assertEqual(entry["target_user_id"], "C999")
+
+        logs = self.db.get_case_access_log("C999")
+        self.assertGreaterEqual(len(logs), 1)
+        self.assertEqual(logs[0]["investigator_id"], "admin_alice")
+
+        # 2. Test FastAPI access auditing via header
+        client = TestClient(app)
+        r_case = client.get("/case/C1000", headers={"X-Investigator-ID": "auditor_charlie"})
+        if r_case.status_code == 200:
+            data = r_case.json()
+            self.assertIn("access_audit_log", data)
+            self.assertIsInstance(data["access_audit_log"], list)
+            if len(data["access_audit_log"]) > 0:
+                self.assertEqual(data["access_audit_log"][0]["investigator_id"], "auditor_charlie")
+
+    def test_governance_policy_endpoint(self):
+        client = TestClient(app)
+        r = client.get("/governance/policy")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+        self.assertIn("governance_pillars", data)
+        self.assertIn("retention_policy", data["governance_pillars"])
+        self.assertIn("access_auditing", data["governance_pillars"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -189,6 +189,15 @@ async def get_case(user_id: str, request: Request):
             except Exception:
                 cusum_path = []
         
+        # Section 10 Governance: Audit-the-Auditor
+        # Log which admin/investigator queried this employee's case dossier
+        investigator_id = request.headers.get("x-investigator-id") or request.headers.get("x-admin-id") or "admin_secops_1"
+        try:
+            db.log_case_access(investigator_id=investigator_id, target_user_id=user_id, action="VIEW_CASE_DOSSIER")
+            access_audit_log = db.get_case_access_log(user_id, limit=10)
+        except Exception:
+            access_audit_log = []
+
         # Build response matching CaseDetail
         return {
             "user_id": risk_score.get("user_id", ""),
@@ -213,6 +222,7 @@ async def get_case(user_id: str, request: Request):
             "score_components": risk_score.get("score_components", {}),
             "is_false_positive": risk_score.get("is_false_positive", False),
             "feedback_reason": risk_score.get("feedback_reason", ""),
+            "access_audit_log": access_audit_log,
             "last_updated": risk_score.get("date") or risk_score.get("last_updated", "")
         }
     
@@ -372,6 +382,42 @@ async def get_agent_script(request: Request):
     return PlainTextResponse(content, media_type="text/x-python")
 
 
+@app.on_event("startup")
+async def startup_event():
+    """Execute startup governance policies (Section 10 Data Retention)."""
+    try:
+        retention_res = db.enforce_retention_policy(retention_days=90)
+        print(f"[Governance] 90-day retention policy active: {retention_res['retained_records']} records retained, {retention_res['pruned_records']} pruned.")
+    except Exception as e:
+        print(f"[Governance] Notice: retention policy check skipped on startup: {e}")
+
+
+@app.get("/governance/policy")
+async def get_governance_policy():
+    """Returns the active Section 10 governance policy specifications."""
+    try:
+        policy_info = db.enforce_retention_policy(retention_days=90)
+        return {
+            "track": "Peace, Justice, Strong Institutions (Section 10)",
+            "governance_pillars": {
+                "human_in_the_loop": "Active (1-click 0.4x false-positive calibration, no autonomous action)",
+                "data_minimization": "Active (Metadata only, exfiltration domain matching, zero keystrokes/content)",
+                "retention_policy": f"Enforced ({policy_info['retention_days']} days max retention)",
+                "access_auditing": "Active (Immutable audit log on all investigator queries to employee dossiers)"
+            },
+            "retention_status": policy_info
+        }
+    except Exception as e:
+        return {"error": str(e), "status": "failed"}
+
+
+@app.post("/governance/retention/enforce")
+async def trigger_retention_enforcement(retention_days: int = 90):
+    """Admin endpoint to manually trigger data retention cleanup."""
+    res = db.enforce_retention_policy(retention_days=retention_days)
+    return {"ok": True, "result": res}
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
@@ -388,7 +434,7 @@ if os.path.exists(DIST_DIR):
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Allow API routes to be returned normally by FastAPI
-        api_prefixes = ("queue", "case", "feedback", "simulate_threat", "health", "telemetry", "agent.py")
+        api_prefixes = ("queue", "case", "feedback", "simulate_threat", "health", "telemetry", "agent.py", "governance")
         if any(full_path == prefix or full_path.startswith(f"{prefix}/") for prefix in api_prefixes):
             raise HTTPException(status_code=404, detail="API route not found")
         

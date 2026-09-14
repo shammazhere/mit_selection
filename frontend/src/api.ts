@@ -26,6 +26,15 @@ export type CusumPoint = {
   event?: string;
 };
 
+export type AccessAuditEntry = {
+  id: number;
+  timestamp: string;
+  investigator_id: string;
+  target_user_id: string;
+  action: string;
+  details?: string;
+};
+
 export type CaseDetail = QueueItem & {
   self_score: number;
   peer_score: number;
@@ -37,6 +46,7 @@ export type CaseDetail = QueueItem & {
   event_timeline: TimelineEvent[];
   is_false_positive?: boolean;
   feedback_reason?: string;
+  access_audit_log?: AccessAuditEntry[];
 };
 
 const base = (import.meta.env.VITE_API_BASE ?? "/api").replace(/\/$/, "");

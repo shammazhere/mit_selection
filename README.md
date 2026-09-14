@@ -45,7 +45,7 @@
 * **Dynamic False-Positive Calibration (0.4× Dampening)**:
   * When an investigator records a false positive, a **0.4× dampening factor** is applied in real time.
   * The risk score immediately drops (e.g. 98 down to 39/100, demoting severity from `CRITICAL` to `LOW`), the account is re-ranked down the queue with a green `✓ CALIBRATED FP` badge, and an immutable `INVESTIGATOR RESOLUTION` audit milestone is logged to the forensic timeline.
-* **Real Host Telemetry Spyware Agent**:
+* **Enterprise EDR Endpoint Telemetry Sensor (Live Host Monitoring)**:
   * A lightweight background daemon (`backend/live_agent.py`) monitoring actual OS desktop windows (`wmctrl`), Google Chrome visits, and USB/MTP storage mounts (`lsusb`, `/run/user/$UID/gvfs`), streaming live events into the dashboard with zero synthetic dummy data.
 
 ---
@@ -551,43 +551,39 @@ npm test
 
 ---
 
-## 🛡️ Privacy, Safety & Ethical Defense (Defending Insider Threat Monitoring)
+## 🛡️ Section 10 Governance, Safety & Anti-Surveillance Safeguards
 
-Whenever endpoint sensors, device scanning, or insider threat analytics are deployed, security evaluators, works councils, and privacy regulators rightly ask: **"Is this intrusive spyware, and how are employee privacy and safety guaranteed?"**
+Whenever endpoint telemetry, device scanning, or insider threat analytics are deployed, security evaluators, works councils, and privacy regulators rightly ask: **"Is this intrusive surveillance, and how are employee privacy, fairness, and safety guaranteed?"**
 
-Silent Shift was engineered from the ground up to satisfy enterprise security compliance (GDPR Art. 5/6, CCPA, ISO 27001) while strictly rejecting invasive "bossware" surveillance patterns. Here is how the system defends against safety and privacy concerns:
+Silent Shift was engineered specifically under the **"Peace, Justice, and Strong Institutions"** track, satisfying enterprise compliance (GDPR Art. 5/6, CCPA, ISO 27001) while rejecting invasive "bossware" surveillance patterns. Here is how the system defends against safety and privacy concerns:
 
-### 1. Zero Keystroke & Zero Content Inspection (Metadata Only)
+### 1. Enterprise Role Separation & Access Control
+* **Web Dashboard**: Strictly restricted to authorized **Security Administrators, SOC Analysts, and Forensics Investigators**. General employees do not log into or view this dashboard.
+* **Corporate Endpoint Sensor**: Deployed across corporate machines and servers using the one-line installer (`curl -sSL .../agent.py | python3 -`). It acts strictly as an endpoint telemetry emitter.
+
+### 2. The 4 Section 10 Governance Pillars
+
+#### Pillar 1: "Audit-the-Auditor" (Admin Access Is Itself Audited)
+* **The Problem**: Giving administrators access to employee behavioral scores creates a risk of internal snooping or personal harassment.
+* **The Silent Shift Solution**: Every time an administrator or analyst queries an employee's case dossier (`GET /case/{user_id}`), an immutable audit event is recorded in the `audit_access_log` database table with the administrator's ID and timestamp.
+* **Visible Transparency**: The Case Page explicitly renders the **"Admin Access Audit Trail"**, ensuring full corporate accountability.
+
+#### Pillar 2: Automated 90-Day Data Retention Limits
+* **The Problem**: Indefinite retention of employee telemetry violates GDPR Article 5(1)(e) (Storage Limitation).
+* **The Silent Shift Solution**: The database engine features an automated retention policy (`enforce_retention_policy(retention_days=90)`). Stale daily telemetry and risk scores older than 90 days are automatically purged from SQLite on startup and via `/governance/retention/enforce`.
+
+#### Pillar 3: Strict Data Minimization (Metadata Only, Zero Content Inspection)
 * **What We Monitor**: Statistical behavioral metadata (file transfer size, USB vendor/product IDs, external cloud service domains, timestamps, and active window titles).
 * **What We NEVER Touch**:
   * ❌ No keystroke logging or password capture.
   * ❌ No webcam, audio, or screen capture.
   * ❌ No email body or chat message reading (Slack, Teams, WhatsApp).
   * ❌ No inspection of actual file contents.
-* **Industry Standard Analogy**: This operates identically to leading enterprise EDR and DLP platforms (CrowdStrike Falcon, Microsoft Defender for Endpoint, Proofpoint ITM) which inspect event metadata to prevent intellectual property theft without invading personal privacy.
+* **Domain Sanitization**: Browser telemetry strictly matches against designated exfiltration services (WeTransfer, Mega, Dropbox), immediately discarding all personal browsing URLs, queries, and history.
 
-### 2. Standard W3C Sandbox Security Boundaries (No Unauthorized Kernel Exploits)
-* For web-based users, SilentShift strictly honors browser sandboxing:
-  * **Explicit User Authorization**: Hardware device discovery uses the standard W3C WebUSB API (`navigator.usb.requestDevice()`), triggering the operating system's native hardware consent modal. The user explicitly selects which device to share.
-  * **Anti-Fingerprinting Compliance**: Host and hardware detection utilizes Google/W3C High-Entropy Client Hints (`navigator.userAgentData`), which respects browser privacy budget standards.
-  * **Transparent Open Agent**: For desktop workstations, the native sensor is a lightweight, readable Python script (`/agent.py`) that uses standard Linux/Windows APIs without proprietary, obfuscated rootkits.
-
-### 3. Dual-Baseline Statistical Fairness (Eliminating Algorithmic Bias)
-* **The Problem with Legacy Tools**: Traditional UEBA platforms use rigid, punitive static rules (e.g. *"Any upload after 8:00 PM triggers a High Risk Alert"*). This unfairly penalizes employees working across different timezones, parents working flexible hours, or employees with unique workloads.
-* **The Silent Shift Solution**:
-  * **Personal Self-Baseline (90 Days)**: Evaluates each employee against *their own historical distribution*. If an engineer routinely works late or syncs code repositories at midnight, their personal anomaly score remains low.
-  * **Peer-Cohort Normalization**: Measures deviations against peers sharing the same role and reporting chain.
-  * **Sustained CUSUM Drift**: A single accidental action or one-off large file download does **not** trigger an alert. Only cumulative, statistically sustained drift crossing the $0.25$ threshold triggers escalation.
-
-### 4. Human-in-the-Loop & One-Click False-Positive Recalibration
+#### Pillar 4: Human-in-the-Loop & 1-Click False-Positive Calibration
 * **No Automated Punitive Actions**: Silent Shift is strictly an **investigator decision-support platform**. The system never automatically locks an employee out, disables credentials, or executes punitive penalties without human review.
 * **Instant 0.4× Calibration**: When an investigator determines an activity was authorized (e.g. approved migration, authorized penetration testing, urgent production patch), a single click applies an instant $0.4\times$ dampening factor. The score drops immediately (e.g. 98 down to 39), demoting the case to `LOW` severity and preventing alert fatigue.
-* **Transparent Fallback Disclosures**: If a role cohort has fewer than 5 members, the system explicitly informs the investigator: *"Cohort size (3) below statistical threshold; fell back to Department-level comparison"*, ensuring analysts never make decisions based on misleading small-sample statistics.
-
-### 5. Enterprise Regulatory & Legal Alignment
-* **GDPR Data Minimization (Article 5(1)(c))**: Only telemetry necessary to detect unauthorized data movement is collected.
-* **GDPR Legitimate Interest (Article 6(1)(f))**: Protecting intellectual property and critical infrastructure from catastrophic exfiltration constitutes a legally recognized legitimate organizational interest when balanced with data minimization.
-* **Immutable Audit Trail**: Every investigator feedback, case note, and calibration rationale is permanently recorded with timestamps and analyst IDs for regulatory compliance audits.
 
 ---
 

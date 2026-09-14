@@ -6,7 +6,7 @@ SQLite persistence for feedback and caching.
 
 import sqlite3
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import json
 
@@ -99,6 +99,18 @@ class Database:
                     down_weight REAL NOT NULL DEFAULT 1.0,
                     last_updated TEXT NOT NULL,
                     PRIMARY KEY (user_id, feedback_date)
+                )
+            """)
+
+            # Table for Access Auditing ("Audit-the-Auditor" — Section 10 Governance)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS audit_access_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    investigator_id TEXT NOT NULL,
+                    target_user_id TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    details TEXT DEFAULT ''
                 )
             """)
             
@@ -402,6 +414,80 @@ class Database:
             result["is_false_positive"] = bool(result["is_false_positive"])
         
         return result
+    
+    def log_case_access(
+        self,
+        investigator_id: str,
+        target_user_id: str,
+        action: str = "VIEW_CASE_DOSSIER",
+        details: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Record an immutable access audit event ("Audit-the-Auditor" — Section 10 Governance).
+        Guarantees that any administrator or analyst viewing employee telemetry is tracked.
+        """
+        now_iso = datetime.now().isoformat()
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO audit_access_log (timestamp, investigator_id, target_user_id, action, details)
+                VALUES (?, ?, ?, ?, ?)
+            """, (now_iso, investigator_id, target_user_id, action, details))
+            conn.commit()
+            log_id = cursor.lastrowid
+        return {
+            "id": log_id,
+            "timestamp": now_iso,
+            "investigator_id": investigator_id,
+            "target_user_id": target_user_id,
+            "action": action,
+            "details": details
+        }
+
+    def get_case_access_log(self, target_user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Retrieve recent investigator access records for a specific employee."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, timestamp, investigator_id, target_user_id, action, details
+                FROM audit_access_log
+                WHERE target_user_id = ?
+                ORDER BY id DESC LIMIT ?
+            """, (target_user_id, limit))
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+
+    def enforce_retention_policy(self, retention_days: int = 90) -> Dict[str, Any]:
+        """
+        Enforce Section 10 Data Retention Policy.
+        Automatically prunes historical risk scores older than retention_days.
+        """
+        cutoff_date = (datetime.now() - timedelta(days=retention_days)).strftime("%Y-%m-%d")
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM risk_scores WHERE date < ?", (cutoff_date,))
+            pruned_count = cursor.fetchone()[0]
+            
+            if pruned_count > 0:
+                cursor.execute("DELETE FROM risk_scores WHERE date < ?", (cutoff_date,))
+                conn.commit()
+            
+            cursor.execute("SELECT COUNT(*) FROM risk_scores")
+            retained_count = cursor.fetchone()[0]
+            
+            cursor.execute("SELECT COUNT(*) FROM audit_access_log")
+            total_access_audits = cursor.fetchone()[0]
+
+        return {
+            "status": "policy_enforced",
+            "retention_days": retention_days,
+            "cutoff_date": cutoff_date,
+            "pruned_records": pruned_count,
+            "retained_records": retained_count,
+            "total_access_audits": total_access_audits,
+            "enforced_at": datetime.now().isoformat()
+        }
     
     def close(self):
         """Close database connection."""

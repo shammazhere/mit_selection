@@ -1,12 +1,12 @@
 """
-Live Endpoint Agent for Silent Shift.
+Corporate Workstation Telemetry Sensor for Silent Shift (Opt-In Endpoint Mode).
 
-Runs as a real-time behavioral surveillance monitor on the host operating system:
-1. Monitors desktop windows (via wmctrl) for real-time cloud transfer visits (WeTransfer, Dropbox, Mega, etc.).
-2. Monitors Google Chrome history & active transactions.
-3. Monitors USB mounts (/run/user/$UID/gvfs/, /media/$USER, lsusb) for mobile devices and flash drives.
-4. Monitors filesystem (via watchdog) for sensitive file creations and copies in ~/Downloads, ~/Desktop, ~/Documents.
-5. Progressively tracks threat accumulation (like real spyware telemetry) from Low -> Medium -> High -> Critical.
+Runs as a background endpoint sensor on enrolled corporate workstations:
+1. Monitors active desktop windows (via wmctrl) for enterprise cloud exfiltration portals.
+2. Monitors browser navigation against designated external data transfer services with strict Data Minimization (ignoring general browsing).
+3. Monitors USB mounts (/run/user/$UID/gvfs/, /media/$USER, lsusb) for unauthorized storage media.
+4. Monitors filesystem (via watchdog) for sensitive document staging in corporate directories.
+5. Streams telemetry to the central Admin / SOC console with automatic false-positive calibration awareness.
 """
 
 from __future__ import annotations
@@ -379,14 +379,17 @@ class LiveEndpointAgent:
                 is_suspicious = any(domain in url_lower for domain in SUSPICIOUS_DOMAINS)
 
                 if is_suspicious:
-                    key = f"chrome_{url}"
+                    matched_domain = next((d for d in SUSPICIOUS_DOMAINS if d in url_lower), "cloud-storage")
+                    key = f"chrome_{matched_domain}"
                     if key not in self.seen_events:
                         self.seen_events.add(key)
-                        print(f"\n[🚨 REAL ACTIVITY DETECTED] Chrome visited upload/exfil site: {url}")
+                        print(f"\n[🚨 REAL ACTIVITY DETECTED] Chrome visited cloud transfer service: {matched_domain}")
+                        # Section 10 Data Minimization: Store sanitized service URL, discard personal query params
+                        sanitized_url = f"https://{matched_domain}/"
                         self.record_real_event(
                             category="http",
-                            event_text=f"Web upload visit to {url}",
-                            details={"url": url, "title": title}
+                            event_text=f"Web upload portal accessed: {matched_domain}",
+                            details={"url": sanitized_url, "service": matched_domain}
                         )
         except Exception:
             pass

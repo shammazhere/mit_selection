@@ -236,6 +236,58 @@ export default function CasePage() {
           onFeedbackSubmitted={loadCaseData}
         />
       </section>
+
+      {/* Section 10 Governance: Audit-the-Auditor */}
+      <section className="card" style={{ borderColor: "rgba(34, 181, 191, 0.3)", background: "rgba(15, 23, 42, 0.6)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>👁️</span> Admin Access Audit Trail ("Audit-the-Auditor")
+            </h2>
+            <p style={{ margin: "4px 0 0 0", fontSize: 12, color: "var(--muted)" }}>
+              Section 10 Governance &amp; Anti-Surveillance: Every administrator query into an employee's case dossier is immutably logged to prevent unauthorized internal snooping.
+            </p>
+          </div>
+          <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: "rgba(34, 181, 191, 0.15)", color: "var(--cyan)", fontWeight: 600 }}>
+            SECTION 10 COMPLIANT
+          </span>
+        </div>
+
+        {detail.access_audit_log && detail.access_audit_log.length > 0 ? (
+          <div style={{ display: "grid", gap: 8 }}>
+            {detail.access_audit_log.map((entry) => (
+              <div
+                key={entry.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  background: "rgba(0, 0, 0, 0.25)",
+                  borderRadius: 6,
+                  border: "1px solid var(--line)",
+                  fontSize: 12,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span className="mono" style={{ color: "var(--cyan)", fontWeight: 600 }}>
+                    {entry.investigator_id}
+                  </span>
+                  <span style={{ color: "var(--muted)" }}>→</span>
+                  <span style={{ color: "var(--ink-secondary)" }}>{entry.action}</span>
+                </div>
+                <span className="mono" style={{ color: "var(--muted)", fontSize: 11 }}>
+                  {new Date(entry.timestamp).toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
+            First recorded administrative access logged for this session.
+          </div>
+        )}
+      </section>
     </main>
   );
 }

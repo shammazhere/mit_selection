@@ -386,6 +386,22 @@ export default function LiveDeviceSensorModal({
         {/* Tab Selector */}
         <div style={{ display: "flex", borderBottom: "1px solid var(--line)", background: "var(--bg-subtle)" }}>
           <button
+            onClick={() => setActiveTab("terminal")}
+            style={{
+              flex: 1,
+              padding: "10px 16px",
+              background: activeTab === "terminal" ? "var(--panel)" : "transparent",
+              border: "none",
+              borderBottom: activeTab === "terminal" ? "2px solid var(--cyan)" : "none",
+              color: activeTab === "terminal" ? "var(--cyan)" : "var(--muted)",
+              fontWeight: 600,
+              fontSize: 12,
+              cursor: "pointer",
+            }}
+          >
+            💻 Corporate Workstation Agent
+          </button>
+          <button
             onClick={() => setActiveTab("sensor")}
             style={{
               flex: 1,
@@ -399,7 +415,7 @@ export default function LiveDeviceSensorModal({
               cursor: "pointer",
             }}
           >
-            📡 Live Device Sensor
+            📡 Web Browser Sensor (WebUSB)
           </button>
           <button
             onClick={() => setActiveTab("privacy")}
@@ -415,23 +431,7 @@ export default function LiveDeviceSensorModal({
               cursor: "pointer",
             }}
           >
-            ⚖️ Privacy & Ethics Defense
-          </button>
-          <button
-            onClick={() => setActiveTab("terminal")}
-            style={{
-              flex: 1,
-              padding: "10px 16px",
-              background: activeTab === "terminal" ? "var(--panel)" : "transparent",
-              border: "none",
-              borderBottom: activeTab === "terminal" ? "2px solid var(--cyan)" : "none",
-              color: activeTab === "terminal" ? "var(--cyan)" : "var(--muted)",
-              fontWeight: 600,
-              fontSize: 12,
-              cursor: "pointer",
-            }}
-          >
-            💻 Laptop Native Agent
+            🛡️ Section 10 Governance
           </button>
         </div>
 
@@ -675,45 +675,45 @@ export default function LiveDeviceSensorModal({
           </div>
         )}
 
-        {/* Tab 2: Privacy & Ethics Defense */}
+        {/* Tab 2: Section 10 Governance */}
         {activeTab === "privacy" && (
           <div style={{ padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text)" }}>
-              <strong>How Silent Shift Defends Employee Privacy & Security:</strong>
+              <strong>Section 10 Governance: Peace, Justice, and Strong Institutions</strong>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 12, color: "var(--muted)" }}>
               <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
-                <strong style={{ color: "var(--low)" }}>1. Zero Content Inspection & Zero Keystroke Logging:</strong>
-                <div>Silent Shift monitors <em>metadata</em> (file size, domain visited, USB vendor ID), NEVER private messages, emails, keystrokes, or screen recordings.</div>
+                <strong style={{ color: "var(--cyan)" }}>1. Human-in-the-Loop &amp; No Autonomous Punishment:</strong>
+                <div>Silent Shift is strictly an investigator decision-support tool. It never terminates credentials or takes punitive actions automatically. The 0.4x calibration dampener immediately protects employees against alert fatigue.</div>
               </div>
 
               <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
-                <strong style={{ color: "var(--low)" }}>2. Dual-Baseline Fairness (No Black-Box Accusations):</strong>
-                <div>Behavior is scored against the employee's own 90-day personal baseline AND peer cohorts. Small cohorts (&lt;5 members) automatically disclose transparent fallbacks to prevent bias.</div>
+                <strong style={{ color: "var(--cyan)" }}>2. Strict Data Minimization:</strong>
+                <div>Monitors only behavioral metadata (file transfer size, external exfiltration domains, USB vendor IDs). Strictly rejects keystroke logging, private chat interception, and file content inspection.</div>
               </div>
 
               <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
-                <strong style={{ color: "var(--low)" }}>3. Human-in-the-Loop False Positive Calibration:</strong>
-                <div>The engine does not take automated punitive actions. When an investigator marks legitimate activity, the 0.4x dampening factor instantly protects the employee from alert fatigue.</div>
+                <strong style={{ color: "var(--cyan)" }}>3. Automated 90-Day Retention Limits:</strong>
+                <div>Complies with GDPR data retention limits. Stale daily telemetry and risk scores older than 90 days are automatically pruned from the database to ensure employee activity is not tracked indefinitely.</div>
               </div>
 
               <div style={{ padding: 12, background: "var(--bg-subtle)", borderRadius: 6, border: "1px solid var(--line)" }}>
-                <strong style={{ color: "var(--low)" }}>4. Enterprise AUP & Permission Boundaries:</strong>
-                <div>Operates strictly within corporate Acceptable Use Policies (AUP) and standard W3C browser permission prompts with explicit user consent.</div>
+                <strong style={{ color: "var(--cyan)" }}>4. "Audit-the-Auditor" (Admin Access Auditing):</strong>
+                <div>Every query by an administrator or analyst into an employee's case dossier is permanently recorded in <code>audit_access_log</code> and displayed on the case page to eliminate internal abuse of administrative power.</div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 3: Laptop Native Terminal Agent */}
+        {/* Tab 3: Corporate Workstation Terminal Agent */}
         {activeTab === "terminal" && (
           <div style={{ padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ fontSize: 13, color: "var(--text)" }}>
-              <strong>Run the Native EDR Sensor on Your Laptop:</strong>
+              <strong>Deploy Corporate Endpoint Sensor to Workstation or Server:</strong>
             </div>
             <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
-              To monitor real OS desktop window titles, local Chrome history, and Linux/Mac storage mount points directly from your operating system:
+              Enrolled corporate machines run a lightweight background telemetry sensor. In this live demo, run the single-line command on any terminal:
             </p>
 
             <div
@@ -732,10 +732,10 @@ export default function LiveDeviceSensorModal({
               curl -sSL {window.location.origin}/agent.py | python3 -
             </div>
 
-            <div style={{ fontSize: 11, color: "var(--muted)" }}>
-              • Automatically discovers your host OS username and hostname via <code>getpass</code> &amp; <code>socket</code>.<br />
-              • Zero manual name entry required — reads your real machine identity.<br />
-              • Streams encrypted HTTPS telemetry back to the centralized dashboard.
+            <div style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.6 }}>
+              • <strong>Zero Manual Entry:</strong> Auto-discovers host username and machine name (e.g. <code>getpass</code> &amp; <code>socket</code>).<br />
+              • <strong>Strict Data Minimization:</strong> Inspects only designated external cloud exfiltration services (WeTransfer, Mega, Dropbox) and USB mounts; completely discards general browsing.<br />
+              • <strong>Role Separation:</strong> Telemetry streams securely into this central Admin / SOC console; normal employees do not access this dashboard.
             </div>
           </div>
         )}

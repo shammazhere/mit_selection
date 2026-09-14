@@ -3,9 +3,12 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import CasePage from "./pages/CasePage";
 import QueuePage from "./pages/QueuePage";
 import ThreatSimulatorModal from "./components/ThreatSimulatorModal";
+import LiveDeviceSensorModal from "./components/LiveDeviceSensorModal";
 
 export default function App() {
   const [isSimOpen, setIsSimOpen] = useState(false);
+  const [isDeviceSensorOpen, setIsDeviceSensorOpen] = useState(false);
+  const isSensorActive = typeof window !== "undefined" && localStorage.getItem("silent_shift_sensor_active") === "true";
 
   return (
     <div style={{ minHeight: "100vh", display: "grid", gridTemplateRows: "56px 1fr" }}>
@@ -45,7 +48,7 @@ export default function App() {
             Investigator Console
           </span>
         </div>
-        <nav style={{ display: "flex", gap: 20, alignItems: "center", fontSize: 13, fontWeight: 500 }}>
+        <nav style={{ display: "flex", gap: 16, alignItems: "center", fontSize: 13, fontWeight: 500 }}>
           <NavLink
             to="/"
             end
@@ -58,6 +61,25 @@ export default function App() {
           >
             Risk Queue
           </NavLink>
+          <button
+            onClick={() => setIsDeviceSensorOpen(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: isSensorActive ? "rgba(82, 183, 136, 0.15)" : "var(--panel)",
+              border: isSensorActive ? "1px solid rgba(82, 183, 136, 0.4)" : "1px solid var(--line)",
+              color: isSensorActive ? "var(--low)" : "var(--text)",
+              padding: "6px 14px",
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            <span>📡</span> {isSensorActive ? "Device Sensor: Active" : "Connect My Device"}
+          </button>
           <button
             onClick={() => setIsSimOpen(true)}
             style={{
@@ -86,6 +108,7 @@ export default function App() {
         </Routes>
       </div>
       <ThreatSimulatorModal isOpen={isSimOpen} onClose={() => setIsSimOpen(false)} />
+      <LiveDeviceSensorModal isOpen={isDeviceSensorOpen} onClose={() => setIsDeviceSensorOpen(false)} />
     </div>
   );
 }

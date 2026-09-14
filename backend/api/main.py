@@ -349,6 +349,29 @@ async def post_telemetry(payload: dict):
         raise HTTPException(status_code=500, detail=f"Error saving telemetry: {str(e)}")
 
 
+@app.get("/agent.py")
+async def get_agent_script(request: Request):
+    """
+    Serves the live endpoint sensor Python script with the current server URL pre-configured.
+    Anyone can run: curl -sSL https://your-domain/agent.py | python3
+    """
+    agent_path = os.path.join(BASE_DIR, "live_agent.py")
+    if not os.path.exists(agent_path):
+        raise HTTPException(status_code=404, detail="Agent script not found")
+    
+    with open(agent_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    base_url = str(request.base_url).rstrip("/")
+    content = content.replace(
+        'parser.add_argument("--server", type=str, default=os.environ.get("SILENT_SHIFT_SERVER_URL", None)',
+        f'parser.add_argument("--server", type=str, default=os.environ.get("SILENT_SHIFT_SERVER_URL", "{base_url}")'
+    )
+    
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(content, media_type="text/x-python")
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
@@ -365,7 +388,7 @@ if os.path.exists(DIST_DIR):
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Allow API routes to be returned normally by FastAPI
-        api_prefixes = ("queue", "case", "feedback", "simulate_threat", "health", "telemetry")
+        api_prefixes = ("queue", "case", "feedback", "simulate_threat", "health", "telemetry", "agent.py")
         if any(full_path == prefix or full_path.startswith(f"{prefix}/") for prefix in api_prefixes):
             raise HTTPException(status_code=404, detail="API route not found")
         

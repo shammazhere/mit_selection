@@ -99,3 +99,11 @@ export function simulateThreat(params: {
   });
 }
 
+export function postTelemetry(payload: Record<string, unknown>) {
+  return request<{ ok: boolean; status: string; user_id: string }>("/telemetry", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+

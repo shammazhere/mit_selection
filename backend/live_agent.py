@@ -20,21 +20,28 @@ import sqlite3
 import subprocess
 import sys
 import time
+import threading
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Set, Any
+from typing import Dict, List, Set, Any, Optional
 
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+try:
+    BASE_DIR = Path(__file__).resolve().parent
+except Exception:
+    BASE_DIR = Path.cwd()
 
-BASE_DIR = Path(__file__).resolve().parent
-REPO_ROOT = BASE_DIR.parent
+REPO_ROOT = BASE_DIR.parent if BASE_DIR.name == "backend" else BASE_DIR
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from backend.api.database import Database
+try:
+    from backend.api.database import Database
+    HAS_LOCAL_DB = True
+except Exception:
+    Database = None
+    HAS_LOCAL_DB = False
 
-DB_PATH = BASE_DIR / "data" / "scores.db"
+DB_PATH = BASE_DIR / "data" / "scores.db" if BASE_DIR.name == "backend" else BASE_DIR / "backend" / "data" / "scores.db"
 
 # Suspicious cloud upload keywords
 SUSPICIOUS_DOMAINS = [
@@ -58,33 +65,58 @@ SUSPICIOUS_DOMAINS = [
 ]
 
 
-class FileActivityHandler(FileSystemEventHandler):
-    """Watches real filesystem events with debouncing."""
-    def __init__(self, callback):
+class StandaloneFileWatcher:
+    """Zero-dependency filesystem watcher using standard library threading and os.scandir."""
+    def __init__(self, paths: List[Path], callback, interval: float = 2.0):
+        self.paths = [p for p in paths if p.exists()]
         self.callback = callback
-        self.last_handled: Dict[str, float] = {}
+        self.interval = interval
+        self.running = False
+        self.thread: Optional[threading.Thread] = None
+        self.known_files: Dict[str, float] = {}
+        for p in self.paths:
+            try:
+                for entry in os.scandir(p):
+                    if entry.is_file():
+                        self.known_files[entry.path] = entry.stat().st_mtime
+            except Exception:
+                pass
 
-    def on_created(self, event):
-        if not event.is_directory:
-            self._handle(event.src_path, "created")
+    def start(self):
+        self.running = True
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
 
-    def on_modified(self, event):
-        if not event.is_directory:
-            self._handle(event.src_path, "modified")
+    def _run(self):
+        while self.running:
+            time.sleep(self.interval)
+            for p in self.paths:
+                try:
+                    for entry in os.scandir(p):
+                        if entry.is_file():
+                            mtime = entry.stat().st_mtime
+                            if entry.path not in self.known_files:
+                                self.known_files[entry.path] = mtime
+                                self.callback(entry.path, "created")
+                            elif mtime > self.known_files[entry.path]:
+                                self.known_files[entry.path] = mtime
+                                self.callback(entry.path, "modified")
+                except Exception:
+                    pass
 
-    def _handle(self, path: str, action: str):
-        now = time.time()
-        if path in self.last_handled and (now - self.last_handled[path] < 3.0):
-            return
-        self.last_handled[path] = now
-        self.callback(path, action)
+    def stop(self):
+        self.running = False
+
+    def join(self):
+        if self.thread and self.thread.is_alive():
+            self.thread.join(timeout=1.0)
 
 
 class LiveEndpointAgent:
     def __init__(self, employee_name: str | None = None, role: str | None = None, department: str = "Engineering", server_url: str | None = None):
         self.system_user = getpass.getuser()
         self.hostname = socket.gethostname()
-        self.server_url = server_url.rstrip("/") if server_url else None
+        self.server_url = (server_url or os.environ.get("SILENT_SHIFT_SERVER_URL", "http://127.0.0.1:8787")).rstrip("/")
         
         # Read user's real name from OS profile dynamically (no hardcoding)
         if not employee_name:
@@ -129,65 +161,19 @@ class LiveEndpointAgent:
         self.explanation_text = ""
 
     def init_database_state(self):
-        """Clean up scores.db: remove dummy data, keep 2 reference baselines, and init host user with clean baseline."""
-        db = Database(str(DB_PATH))
+        """Clean up scores.db: remove ALL dummy/fake accounts and initialize real host user with clean baseline."""
         today_date = datetime.now().strftime("%Y-%m-%d")
         now_iso = datetime.now().isoformat()
-        with sqlite3.connect(db.db_path) as conn:
-            c = conn.cursor()
-            # Prune all legacy dummy accounts or past date rows, keeping ONLY today's date for self.user_id, C1001, and C1004
-            c.execute('DELETE FROM risk_scores WHERE user_id NOT IN (?, "C1001", "C1004") OR date != ?', (self.user_id, today_date))
-            
-            # Clean baseline 1: Alex Rivera (Financial Analyst - Low)
-            c.execute("""
-                INSERT OR REPLACE INTO risk_scores (
-                    user_id, date, self_score, peer_score, drift_score, pre_multiplier_score,
-                    raw_fusion_score, adjusted_fusion_score, risk_score, cohort_used, cohort_size,
-                    fallback_applied, role, name, team, cusum_path, multipliers_applied,
-                    score_components, severity, explanation_text, event_timeline, is_false_positive,
-                    feedback_reason, last_updated
-                ) VALUES (
-                    "C1001", ?, 0.10, 0.15, 0.04, 0.12, 0.15, 0.22, 22.5, "role", 12,
-                    0, "Financial Analyst", "Alex Rivera", "Finance", ?,
-                    "{}", "{}", "low", "Activity is within expected personal bounds. Routine accounting workflows.",
-                    ?,
-                    0, "", ?
-                )
-            """, (
-                today_date,
-                json.dumps([
-                    {"time": "09:00 AM", "timestamp": f"{today_date}T09:00:00", "value": 0.0, "label": "BASE", "event": "Routine morning logon"},
-                    {"time": "09:15 AM", "timestamp": f"{today_date}T09:15:00", "value": 0.04, "label": "LOGON", "event": "Standard user logon (PC-C1001)"}
-                ]),
-                json.dumps([{"timestamp": f"{today_date}T09:15:00", "event": "Standard user logon (PC-C1001)", "category": "logon"}]),
-                now_iso
-            ))
-            
-            # Clean baseline 2: Elena Vance (Systems Administrator - Medium)
-            c.execute("""
-                INSERT OR REPLACE INTO risk_scores (
-                    user_id, date, self_score, peer_score, drift_score, pre_multiplier_score,
-                    raw_fusion_score, adjusted_fusion_score, risk_score, cohort_used, cohort_size,
-                    fallback_applied, role, name, team, cusum_path, multipliers_applied,
-                    score_components, severity, explanation_text, event_timeline, is_false_positive,
-                    feedback_reason, last_updated
-                ) VALUES (
-                    "C1004", ?, 0.38, 0.42, 0.20, 0.40, 0.45, 0.55, 46.0, "role", 8,
-                    0, "Systems Administrator", "Elena Vance", "IT Ops", ?,
-                    "{}", "{}", "medium", "Mild elevation due to periodic maintenance shifts. Matches administrative baseline.",
-                    ?,
-                    0, "", ?
-                )
-            """, (
-                today_date,
-                json.dumps([
-                    {"time": "09:30 AM", "timestamp": f"{today_date}T09:30:00", "value": 0.0, "label": "BASE", "event": "IT shift initialization"},
-                    {"time": "10:00 AM", "timestamp": f"{today_date}T10:00:00", "value": 0.20, "label": "SIGNAL", "event": "Administrative remote shell session"}
-                ]),
-                json.dumps([{"timestamp": f"{today_date}T10:00:00", "event": "Administrative remote shell session", "category": "signal"}]),
-                now_iso
-            ))
-            conn.commit()
+        if HAS_LOCAL_DB and DB_PATH.parent.exists():
+            try:
+                db = Database(str(DB_PATH))
+                with sqlite3.connect(db.db_path) as conn:
+                    c = conn.cursor()
+                    # Remove all dummy/fake demo accounts completely
+                    c.execute('DELETE FROM risk_scores WHERE user_id LIKE "C1%" OR user_id = "DEV-LINU-77D958"')
+                    conn.commit()
+            except Exception:
+                pass
 
         # Initialize host user at baseline Low risk with ZERO dummy events
         self.suspicious_event_count = 0
@@ -209,8 +195,7 @@ class LiveEndpointAgent:
         print(f"[Live Agent] 🛡️ Real-time host sensor active for {self.employee_name} ({self.user_id}). Clean baseline: {self.risk_score}/100 (LOW).")
 
     def persist_user_state(self):
-        """Save current progressive telemetry state to scores.db."""
-        db = Database(str(DB_PATH))
+        """Save current progressive telemetry state to scores.db and central server."""
         now_dt = datetime.now()
         now_iso = now_dt.isoformat()
 
@@ -218,24 +203,25 @@ class LiveEndpointAgent:
         is_fp = 0
         fp_reason = ""
         down_weight = 1.0
-        try:
-            current_score = db.get_risk_score(self.user_id)
-            if current_score and current_score.get("is_false_positive"):
-                is_fp = 1
-                fp_reason = current_score.get("feedback_reason", "")
-                down_weight = 0.4
-            else:
-                with sqlite3.connect(db.db_path) as conn:
-                    c = conn.cursor()
-                    c.execute("SELECT reason FROM feedback WHERE user_id = ? AND is_false_positive = 1 ORDER BY id DESC LIMIT 1", (self.user_id,))
-                    row = c.fetchone()
-                    if row:
-                        is_fp = 1
-                        fp_reason = row[0] or ""
-                        down_weight = 0.4
-        except Exception:
-            pass
-
+        if HAS_LOCAL_DB and DB_PATH.parent.exists():
+            try:
+                db = Database(str(DB_PATH))
+                current_score = db.get_risk_score(self.user_id)
+                if current_score and current_score.get("is_false_positive"):
+                    is_fp = 1
+                    fp_reason = current_score.get("feedback_reason", "")
+                    down_weight = 0.4
+                else:
+                    with sqlite3.connect(db.db_path) as conn:
+                        c = conn.cursor()
+                        c.execute("SELECT reason FROM feedback WHERE user_id = ? AND is_false_positive = 1 ORDER BY id DESC LIMIT 1", (self.user_id,))
+                        row = c.fetchone()
+                        if row:
+                            is_fp = 1
+                            fp_reason = row[0] or ""
+                            down_weight = 0.4
+            except Exception:
+                pass
         effective_risk = round(self.risk_score * down_weight, 1)
         effective_sev = self.severity
         if is_fp:
@@ -284,15 +270,21 @@ class LiveEndpointAgent:
             "feedback_reason": fp_reason,
             "last_updated": now_iso
         }
-        db.upsert_risk_score(payload)
+        if HAS_LOCAL_DB and DB_PATH.parent.exists():
+            try:
+                db = Database(str(DB_PATH))
+                db.upsert_risk_score(payload)
+            except Exception:
+                pass
 
-        # If remote server URL provided, stream telemetry over HTTP
-        if self.server_url:
+        # Stream telemetry over HTTP to central server
+        server_target = self.server_url or os.environ.get("SILENT_SHIFT_SERVER_URL", "http://127.0.0.1:8787")
+        if server_target:
             try:
                 import urllib.request
                 req_data = json.dumps(payload).encode("utf-8")
                 req = urllib.request.Request(
-                    f"{self.server_url}/telemetry",
+                    f"{server_target}/telemetry",
                     data=req_data,
                     headers={"Content-Type": "application/json"}
                 )
@@ -556,10 +548,7 @@ class LiveEndpointAgent:
         self.init_database_state()
         self.init_chrome_baseline()
 
-        # Set up filesystem observer
-        observer = Observer()
-        handler = FileActivityHandler(self.on_file_activity)
-        
+        # Set up zero-dependency filesystem observer
         watch_paths = [
             Path.home() / "Downloads",
             Path.home() / "Desktop",
@@ -567,19 +556,19 @@ class LiveEndpointAgent:
             Path(f"/media/{self.system_user}")
         ]
 
+        watcher = StandaloneFileWatcher(watch_paths, self.on_file_activity)
         for wp in watch_paths:
             if wp.exists():
-                observer.schedule(handler, str(wp), recursive=False)
                 print(f"[Live Agent] 📁 Watching directory: {wp}")
 
-        observer.start()
+        watcher.start()
         self.running = True
-        print("\n🟢 LIVE SPYWARE TELEMETRY IS ACTIVE!")
-        print("   Silent Shift is tracking your operating system like real surveillance:")
+        print("\n🟢 LIVE WORKSTATION TELEMETRY IS ACTIVE!")
+        print("   Silent Shift is tracking your operating system events:")
         print("   👉 EVENT 1: Open Chrome and visit https://wetransfer.com (Risk climbs to ~44.0 Medium)")
         print("   👉 EVENT 2: Plug in your phone or USB drive (Risk climbs to ~75.0 High)")
         print("   👉 EVENT 3: Create a file in ~/Downloads (Risk climbs to ~96.0 Critical)")
-        print("\n   Keep dashboard open at http://127.0.0.1:5173 to watch it track in REAL TIME!\n")
+        print(f"\n   Keep dashboard open at {self.server_url} to watch it track in REAL TIME!\n")
 
         try:
             while self.running:
@@ -588,9 +577,9 @@ class LiveEndpointAgent:
                 self.check_usb_devices()
                 time.sleep(2)
         except KeyboardInterrupt:
-            observer.stop()
+            watcher.stop()
             print("\n[Live Agent] Stopped.")
-        observer.join()
+        watcher.join()
 
 
 def main():

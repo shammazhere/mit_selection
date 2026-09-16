@@ -7,7 +7,7 @@ Implements the Contract B endpoints:
 - POST /feedback - Record false positive feedback
 """
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, APIRouter
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,6 +42,9 @@ app = FastAPI(
     description="Backend API for insider threat detection",
     version="1.0.0"
 )
+
+# Router for all API endpoints (mounted at both / and /api)
+api_router = APIRouter()
 
 # Enable CORS for frontend dashboard
 app.add_middleware(
@@ -102,7 +105,7 @@ def _assess_severity(risk_score: float) -> str:
         return "low"
 
 
-@app.get("/queue")
+@api_router.get("/queue")
 async def get_queue(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -157,7 +160,7 @@ async def get_queue(
         raise HTTPException(status_code=500, detail=f"Error fetching queue: {str(e)}")
 
 
-@app.get("/case/{user_id}")
+@api_router.get("/case/{user_id}")
 async def get_case(user_id: str, request: Request):
     """
     Returns everything the case detail view needs.
@@ -232,7 +235,7 @@ async def get_case(user_id: str, request: Request):
         raise HTTPException(status_code=500, detail=f"Error fetching case: {str(e)}")
 
 
-@app.post("/feedback")
+@api_router.post("/feedback")
 async def post_feedback(feedback: dict):
     """
     Records an investigator's false-positive decision.
@@ -269,7 +272,7 @@ async def post_feedback(feedback: dict):
         raise HTTPException(status_code=500, detail=f"Error recording feedback: {str(e)}")
 
 
-@app.post("/simulate_threat")
+@api_router.post("/simulate_threat")
 async def simulate_threat_endpoint(req: dict):
     """
     Inject live custom threat activity for ANY user/actions and execute the full detection pipeline.
@@ -314,7 +317,7 @@ async def simulate_threat_endpoint(req: dict):
         raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")
 
 
-@app.post("/telemetry")
+@api_router.post("/telemetry")
 async def post_telemetry(payload: dict):
     """
     Receives live endpoint sensor telemetry from live_agent.py.
@@ -359,7 +362,7 @@ async def post_telemetry(payload: dict):
         raise HTTPException(status_code=500, detail=f"Error saving telemetry: {str(e)}")
 
 
-@app.get("/agent.py")
+@api_router.get("/agent.py")
 async def get_agent_script(request: Request):
     """
     Serves the live endpoint sensor Python script with the current server URL pre-configured.
@@ -392,7 +395,7 @@ async def startup_event():
         print(f"[Governance] Notice: retention policy check skipped on startup: {e}")
 
 
-@app.get("/governance/policy")
+@api_router.get("/governance/policy")
 async def get_governance_policy():
     """Returns the active Section 10 governance policy specifications."""
     try:
@@ -411,18 +414,22 @@ async def get_governance_policy():
         return {"error": str(e), "status": "failed"}
 
 
-@app.post("/governance/retention/enforce")
+@api_router.post("/governance/retention/enforce")
 async def trigger_retention_enforcement(retention_days: int = 90):
     """Admin endpoint to manually trigger data retention cleanup."""
     res = db.enforce_retention_policy(retention_days=retention_days)
     return {"ok": True, "result": res}
 
 
-@app.get("/health")
+@api_router.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
+
+# Mount API router at both root (/) and (/api) for full compatibility
+app.include_router(api_router)
+app.include_router(api_router, prefix="/api")
 
 # Single-server full-stack hosting: Serve React frontend build if present
 DIST_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend", "dist")
@@ -434,7 +441,7 @@ if os.path.exists(DIST_DIR):
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         # Allow API routes to be returned normally by FastAPI
-        api_prefixes = ("queue", "case", "feedback", "simulate_threat", "health", "telemetry", "agent.py", "governance")
+        api_prefixes = ("queue", "case", "feedback", "simulate_threat", "health", "telemetry", "agent.py", "governance", "api")
         if any(full_path == prefix or full_path.startswith(f"{prefix}/") for prefix in api_prefixes):
             raise HTTPException(status_code=404, detail="API route not found")
         

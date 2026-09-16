@@ -21,6 +21,7 @@ export default function QueuePage() {
             }
           }
           setRows(Array.from(map.values()).sort((a, b) => b.risk_score - a.risk_score));
+          setError("");
         })
         .catch((err: Error) => setError(err.message));
     };

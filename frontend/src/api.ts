@@ -52,18 +52,52 @@ export type CaseDetail = QueueItem & {
 const base = (import.meta.env.VITE_API_BASE ?? "/api").replace(/\/$/, "");
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`${res.status} ${path}: ${text}`);
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const urlsToTry = [
+    `${base}${cleanPath}`,
+    cleanPath,
+    cleanPath.startsWith("/api") ? cleanPath.replace(/^\/api/, "") : `/api${cleanPath}`
+  ];
+  
+  // Deduplicate URLs
+  const uniqueUrls = Array.from(new Set(urlsToTry));
+  
+  let lastError: Error | null = null;
+  for (const url of uniqueUrls) {
+    try {
+      const res = await fetch(url, {
+        ...init,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          ...(init?.headers ?? {}),
+        },
+      });
+      
+      const cType = res.headers.get("content-type") || "";
+      // If server returned HTML (SPA fallback), skip and try next URL
+      if (cType.includes("text/html")) {
+        continue;
+      }
+      
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status} ${url}: ${text}`);
+      }
+      
+      const text = await res.text();
+      // Verify response is actually JSON and not an HTML error document
+      if (text.trim().startsWith("<")) {
+        continue;
+      }
+      
+      return JSON.parse(text) as T;
+    } catch (e: any) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+    }
   }
-  return res.json() as Promise<T>;
+  
+  throw lastError || new Error(`Failed to load ${path}`);
 }
 
 export function fetchQueue() {

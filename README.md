@@ -8,6 +8,16 @@
 [![Recharts](https://img.shields.io/badge/Recharts-2.15-22b5bf?style=flat)](https://recharts.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-3.0+-003B57?style=flat&logo=sqlite&logoColor=white)](https://sqlite.org/)
 
+[![Vercel](https://img.shields.io/badge/Vercel-Live%20Dashboard-000000?style=flat&logo=vercel&logoColor=white)](https://silent-shift.vercel.app/)
+[![Render](https://img.shields.io/badge/Render-Backend%20API-46E3B7?style=flat&logo=render&logoColor=black)](https://silentshift-backend.onrender.com/)
+
+> 🌐 **Live Investigator Console:** [https://silent-shift.vercel.app/](https://silent-shift.vercel.app/)  
+> ⚡ **Live Production API:** [https://silentshift-backend.onrender.com/](https://silentshift-backend.onrender.com/)  
+> 🖥️ **Live Workstation Sensor (Zero-Install):**
+> ```bash
+> curl -sSL https://silentshift-backend.onrender.com/agent.py | python3 -
+> ```
+
 > **Problem Statement 16 — Silent Shift**: An enterprise-grade, privacy-conscious Insider Threat Detection platform designed to identify slow, low-volume, and stealthy behavioral drifts before catastrophic exfiltration occurs. Combines dual-baseline anomaly detection (Isolation Forest self-baselining + peer cohort deviation), statistical temporal drift (CUSUM control charting on locked pre-multiplier scores), contextual risk multipliers, plain-English explanations with small-cohort fallback disclosures, and dynamic false-positive calibration to eliminate analyst alert fatigue.
 
 ---

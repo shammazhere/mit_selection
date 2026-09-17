@@ -18,14 +18,14 @@
 > curl -sSL https://silentshift-backend.onrender.com/agent.py | python3 -
 > ```
 
-> **Problem Statement 16 — Silent Shift**: An enterprise-grade, privacy-conscious Insider Threat Detection platform designed to identify slow, low-volume, and stealthy behavioral drifts before catastrophic exfiltration occurs. Combines dual-baseline anomaly detection (Isolation Forest self-baselining + peer cohort deviation), statistical temporal drift (CUSUM control charting on locked pre-multiplier scores), contextual risk multipliers, plain-English explanations with small-cohort fallback disclosures, and dynamic false-positive calibration to eliminate analyst alert fatigue.
+> **Silent Shift**: An enterprise-grade, privacy-conscious Insider Threat Detection platform designed to identify slow, low-volume, and stealthy behavioral drifts before catastrophic exfiltration occurs. Combines dual-baseline anomaly detection (Isolation Forest self-baselining + peer cohort deviation), statistical temporal drift (CUSUM control charting on locked pre-multiplier scores), contextual risk multipliers, plain-English explanations with small-cohort fallback disclosures, and dynamic false-positive calibration to eliminate analyst alert fatigue.
 
 ---
 
 ## 📑 Table of Contents
 1. [Key Capabilities & Innovations](#-key-capabilities--innovations)
 2. [End-to-End System Architecture](#-end-to-end-system-architecture)
-3. [The 3-Person Engineering Breakdown](#-the-3-person-engineering-breakdown)
+3. [Platform Components](#-platform-components)
 4. [Hybrid Sensor Architecture & Live Endpoint Telemetry (Browser WebUSB + EDR Sensor)](#-hybrid-sensor-architecture--live-endpoint-telemetry-browser-webusb--edr-sensor)
 5. [Dynamic False-Positive Calibration (Alert Fatigue Mitigation)](#-dynamic-false-positive-calibration-alert-fatigue-mitigation)
 6. [Time-Series Telemetry & Resilient Queue Deduplication](#-time-series-telemetry--resilient-queue-deduplication)
@@ -35,7 +35,7 @@
 10. [Cloud Hosting & Production Deployment](#-cloud-hosting--production-deployment)
 11. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
 12. [Automated Verification & Test Suite](#-automated-verification--test-suite)
-13. [Privacy, Safety & Ethical Defense (Defending Insider Threat Monitoring)](#-privacy-safety--ethical-defense-defending-insider-threat-monitoring)
+13. [Governance & Ethical Safeguards](#-governance--ethical-safeguards)
 
 ---
 
@@ -69,7 +69,7 @@ flowchart TD
         A2["Live Real Host Sensor (live_agent.py)<br/>(Active Windows, Chrome, USB/MTP mounts)"]
     end
 
-    subgraph PERSON2 ["2. Detection Engine (Person 2)"]
+    subgraph PERSON2 ["2. Detection Engine"]
         B1["Feature Engineering<br/>(Daily User Aggregations)"]
         B2["Isolation Forest Self-Baseline<br/>(Personal Deviation Score)"]
         B3["Peer Cohort Engine<br/>(Role / Department Z-Score)"]
@@ -81,7 +81,7 @@ flowchart TD
         C1["daily_user_scores.csv<br/>(user_id, date, self_score, peer_score, fallback_applied)"]
     end
 
-    subgraph PERSON3 ["3. Risk Fusion & Drift Engine (Person 3)"]
+    subgraph PERSON3 ["3. Risk Fusion & Drift Engine"]
         D1["Pre-Multiplier Score Combiner<br/>(LOCKED for CUSUM)"]
         D2["CUSUM Drift Detection Chart<br/>(Threshold: 0.25, Slack: 0.08)"]
         D3["Context Multiplier Matrix<br/>(Role, After-Hours, Removable Media)"]
@@ -92,7 +92,7 @@ flowchart TD
         D1 & D2 --> D3 --> D4 --> D5 --> D6
     end
 
-    subgraph PERSON1 ["4. Investigator Console (Person 1)"]
+    subgraph PERSON1 ["4. Investigator Console"]
         E1["Ranked Risk Queue Page<br/>(KPI Cards, Severity Badges, Real-time Sorting)"]
         E2["Case Forensic Dossier Page<br/>(Tri-Signal Gauges, Temporal Drift Chart)"]
         E3["Forensic Chronological Timeline<br/>(Wrapped Links, Category Badges, Audit Trail)"]
@@ -109,11 +109,11 @@ flowchart TD
 
 ---
 
-## 👥 The 3-Person Engineering Breakdown
+## 👥 Platform Components
 
-This platform is structured around three modular, decoupled layers aligned with industry team separation:
+This platform is structured around three modular, decoupled layers:
 
-### Person 1 — Frontend Investigator Console
+### Frontend Investigator Console
 * **Directory**: `frontend/src/`
 * **Technologies**: React 19, TypeScript, Vite, Recharts, Vanilla CSS Design System.
 * **Key Modules**:
@@ -123,7 +123,7 @@ This platform is structured around three modular, decoupled layers aligned with 
   * `Timeline.tsx`: Chronological drill-down of all host and network telemetry events with category badges (`EXFILTRATION`, `DEVICE/USB`, `AFTER-HOURS AUTH`, `INVESTIGATOR RESOLUTION`).
   * `ThreatSimulatorModal.tsx`: Interactive modal for testing custom insider threat scenarios on demand.
 
-### Person 2 — Anomaly Detection & Baseline Engine
+### Anomaly Detection & Baseline Engine
 * **Directory**: `backend/ingestion/`, `backend/models/`
 * **Technologies**: Python, Pandas, Scikit-Learn, NumPy.
 * **Key Modules**:
@@ -133,7 +133,7 @@ This platform is structured around three modular, decoupled layers aligned with 
   * `cohorts.py`: Enforces minimum cohort size ($N \ge 5$); flags `fallback_applied = True` when small role groups fall back to department-level comparisons.
   * **Output Contract**: Emits **Contract A** (`backend/output/daily_user_scores.csv`).
 
-### Person 3 — Risk Fusion, CUSUM Drift, Explanations & Contract B API
+### Risk Fusion, CUSUM Drift, Explanations & Contract B API
 * **Directory**: `backend/drift/`, `backend/fusion/`, `backend/explain/`, `backend/api/`
 * **Technologies**: FastAPI, Uvicorn, SQLite, Dataclasses.
 * **Key Modules**:
@@ -233,7 +233,7 @@ The dashboard includes a built-in **Threat Simulator** accessible via the header
 
 * Allows testing custom employee names, roles, departments, target upload domains, and sensitive file names.
 * Configurable toggles for **After-Hours Activity**, **USB Storage Connections**, **Confidential Document Handling**, and **Cloud Uploads**.
-* Executes the complete Person 3 pipeline and injects the new threat into the live queue in real time without restarting servers.
+* Executes the complete fusion pipeline and injects the new threat into the live queue in real time without restarting servers.
 
 ---
 
@@ -257,7 +257,7 @@ The dashboard includes a built-in **Threat Simulator** accessible via the header
 │   │   └── fusion.py               # Risk fusion engine with 4 contextual multipliers
 │   ├── ingestion/
 │   │   ├── cert_loader.py          # CERT CSV parsing & bundle ingestion
-│   │   ├── publish.py              # Person 2 pipeline orchestration
+│   │   ├── publish.py              # Detection pipeline orchestration
 │   │   ├── synthetic_cert.py       # Synthetic CERT data generator
 │   │   └── user_day.py             # Daily feature extraction
 │   ├── models/
@@ -265,14 +265,14 @@ The dashboard includes a built-in **Threat Simulator** accessible via the header
 │   │   ├── peer_baseline.py        # Peer-cohort deviation modeling (Z-score)
 │   │   └── self_baseline.py        # Self-baseline Isolation Forest modeling
 │   ├── output/
-│   │   ├── daily_user_scores.csv   # Person 2 -> Person 3 Contract A interface output
+│   │   ├── daily_user_scores.csv   # Detection -> Fusion interface output
 │   │   └── daily_user_scores.sqlite
 │   ├── tests/
 │   │   ├── test_person2.py         # Anomaly detection & feature unit tests
-│   │   └── test_person3.py         # CUSUM drift, fusion, and Contract B API unit tests
-│   ├── generate_sample_data.py     # Standalone Contract A sample generator
+│   │   └── test_person3.py         # CUSUM drift, fusion, and API unit tests
+│   ├── generate_sample_data.py     # Standalone sample generator
 │   ├── live_agent.py               # Live host real-time spyware telemetry monitor
-│   ├── pipeline.py                 # Batch processing pipeline (Contract A -> SQLite)
+│   ├── pipeline.py                 # Batch processing pipeline (Output -> SQLite)
 │   └── simulator.py                # Simulation injection engine
 ├── frontend/
 │   ├── src/
@@ -321,13 +321,12 @@ npm install
 cd ..
 ```
 
-### 2. Environment Variables (`.env`) — Is `.env` Needed?
-* **For Local Development: NO `.env` is needed.**  
-  The system is built with **zero-config fallbacks**:
+### 2. Environment Variables (`.env`)
+* **Local Development:** No `.env` is needed.  
+  The system is built with zero-config fallbacks:
   - The backend automatically defaults to `http://127.0.0.1:8787` and SQLite at `backend/data/scores.db`.
   - The frontend Vite dev server automatically proxies `/api` to `http://127.0.0.1:8787`.
-  - You can immediately run the project without creating any `.env` file!
-* **For Cloud Hosting: Environment variables are recommended.**  
+* **Cloud Hosting:** Environment variables are recommended.  
   Templates are provided in `.env.example` and `frontend/.env.example`:
   ```bash
   # Root .env (Backend)
@@ -369,8 +368,7 @@ python backend/live_agent.py
 
 ## 🌐 Cloud Hosting & Production Deployment
 
-### Will It Work the Same as Local?
-**Yes! The entire investigative, analytical, and scoring core works 100% identically in the cloud:**
+The entire investigative, analytical, and scoring core works identically in cloud environments:
 
 | Feature / Component | Hosted in Cloud | Behavior & Experience |
 | :--- | :---: | :--- |
@@ -378,7 +376,7 @@ python backend/live_agent.py
 | **Case Forensic Dossier** | ✅ 100% Identical | Tri-signal gauges (Self, Peer, Drift), plain-English explanations, and event timelines. |
 | **CUSUM Control Chart** | ✅ 100% Identical | Real-time timestamps, threshold flags, and dark-mode interactive hover tooltips. |
 | **False-Positive Calibration** | ✅ 100% Identical | Analysts click "Calibrate as False Positive", triggering instant 0.4× score dampening and queue re-ranking in the cloud database. |
-| **Interactive Threat Simulator** | ✅ 100% Identical | **Zero setup for judges:** Anyone visiting the hosted URL can open the simulator modal, configure custom attacks (USB + Cloud Upload), and inject threats live! |
+| **Interactive Threat Simulator** | ✅ 100% Identical | **Zero setup required:** Anyone visiting the hosted URL can open the simulator modal, configure custom attacks (USB + Cloud Upload), and inject threats live. |
 | **Live Host Spyware Sensor** | ✅ Supported via `--server` | Because `live_agent.py` monitors physical hardware on your personal laptop (local USB ports, Chrome history, window manager), run `python backend/live_agent.py --server https://your-app.onrender.com` on your laptop to stream live events straight into the cloud dashboard! |
 
 ---
@@ -537,7 +535,7 @@ Dynamically injects a customized threat scenario through the full detection pipe
 
 The repository includes a comprehensive, multi-layer testing harness:
 
-### 1. Python Unit Tests (Person 2 & Person 3)
+### 1. Python Unit Tests (Detection & Fusion Engines)
 ```bash
 # Run all backend unit tests
 .venv/bin/python3 -m unittest discover backend/tests
@@ -561,17 +559,17 @@ npm test
 
 ---
 
-## 🛡️ Section 10 Governance, Safety & Anti-Surveillance Safeguards
+## 🛡️ Governance & Ethical Safeguards
 
 Whenever endpoint telemetry, device scanning, or insider threat analytics are deployed, security evaluators, works councils, and privacy regulators rightly ask: **"Is this intrusive surveillance, and how are employee privacy, fairness, and safety guaranteed?"**
 
-Silent Shift was engineered specifically under the **"Peace, Justice, and Strong Institutions"** track, satisfying enterprise compliance (GDPR Art. 5/6, CCPA, ISO 27001) while rejecting invasive "bossware" surveillance patterns. Here is how the system defends against safety and privacy concerns:
+Silent Shift was engineered to satisfy enterprise compliance (GDPR Art. 5/6, CCPA, ISO 27001) while rejecting invasive "bossware" surveillance patterns. Here is how the system defends against safety and privacy concerns:
 
 ### 1. Enterprise Role Separation & Access Control
 * **Web Dashboard**: Strictly restricted to authorized **Security Administrators, SOC Analysts, and Forensics Investigators**. General employees do not log into or view this dashboard.
 * **Corporate Endpoint Sensor**: Deployed across corporate machines and servers using the one-line installer (`curl -sSL .../agent.py | python3 -`). It acts strictly as an endpoint telemetry emitter.
 
-### 2. The 4 Section 10 Governance Pillars
+### 2. Governance Pillars
 
 #### Pillar 1: "Audit-the-Auditor" (Admin Access Is Itself Audited)
 * **The Problem**: Giving administrators access to employee behavioral scores creates a risk of internal snooping or personal harassment.
@@ -597,7 +595,6 @@ Silent Shift was engineered specifically under the **"Peace, Justice, and Strong
 
 ---
 
-## ⚖️ License & Hackathon Context
+## ⚖️ License
 
-Developed for **MIT Hackathon — Problem Statement 16 ("Silent Shift")**.  
 Designed with ethical data boundaries: zero keystroke logging, zero message interception, full cohort fallback disclosures, and transparent algorithmic explainability.

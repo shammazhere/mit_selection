@@ -142,7 +142,13 @@ class LiveEndpointAgent:
         self.chrome_history_path = Path.home() / ".config" / "google-chrome" / "Default" / "History"
         self.running = False
 
-        # Progressive Threat Telemetry State
+        # Multi-Factor Context Tracking
+        self.active_factors: Dict[str, bool] = {
+            "cloud_portal": False,
+            "usb_storage": False,
+            "file_staging": False,
+            "after_hours": False
+        }
         self.suspicious_event_count = 0
         self.risk_score = 5.0
         self.severity = "low"
@@ -329,14 +335,14 @@ class LiveEndpointAgent:
                 for domain in SUSPICIOUS_DOMAINS:
                     domain_root = domain.split(".")[0].lower()
                     if domain_root in win_title.lower() or domain in win_title.lower():
-                        key = f"win_http_{domain_root}"
+                        key = f"cloud_domain_{domain_root}"
                         if key not in self.seen_events:
                             self.seen_events.add(key)
                             print(f"\n[🚨 REAL ACTIVITY DETECTED] Browser opened cloud upload site: {win_title}")
                             self.record_real_event(
                                 category="http",
-                                event_text=f"Web upload portal accessed: {win_title}",
-                                details={"url": f"https://{domain}/", "title": win_title}
+                                event_text=f"Web upload portal accessed: {domain}",
+                                details={"url": f"https://{domain}/", "title": win_title, "factor": "cloud_portal"}
                             )
         except Exception:
             pass
@@ -372,7 +378,8 @@ class LiveEndpointAgent:
 
                 if is_suspicious:
                     matched_domain = next((d for d in SUSPICIOUS_DOMAINS if d in url_lower), "cloud-storage")
-                    key = f"chrome_{matched_domain}"
+                    domain_root = matched_domain.split(".")[0].lower()
+                    key = f"cloud_domain_{domain_root}"
                     if key not in self.seen_events:
                         self.seen_events.add(key)
                         print(f"\n[🚨 REAL ACTIVITY DETECTED] Chrome visited cloud transfer service: {matched_domain}")
@@ -381,7 +388,7 @@ class LiveEndpointAgent:
                         self.record_real_event(
                             category="http",
                             event_text=f"Web upload portal accessed: {matched_domain}",
-                            details={"url": sanitized_url, "service": matched_domain}
+                            details={"url": sanitized_url, "service": matched_domain, "factor": "cloud_portal"}
                         )
         except Exception:
             pass
@@ -452,83 +459,107 @@ class LiveEndpointAgent:
         )
 
     def record_real_event(self, category: str, event_text: str, details: Dict[str, Any]):
-        """Progressive threat tracking: escalates risk score, drift, and timeline like real spyware."""
+        """Multi-factor threat tracking: correlates independent factors (cloud, usb, files) rather than raw counts."""
         now = datetime.now()
         now_iso = now.strftime("%Y-%m-%dT%H:%M:%S")
         time_str = now.strftime("%I:%M:%S %p")
         self.suspicious_event_count += 1
+
+        # Register active attack factors
+        factor = details.get("factor")
+        if factor and factor in self.active_factors:
+            self.active_factors[factor] = True
+        elif category == "http":
+            self.active_factors["cloud_portal"] = True
+        elif category == "device":
+            self.active_factors["usb_storage"] = True
+        elif category == "file":
+            self.active_factors["file_staging"] = True
         
+        # Check after-hours
+        is_after_hours = (now.hour < 7 or now.hour >= 20)
+        if is_after_hours:
+            self.active_factors["after_hours"] = True
+
         # Add real event to timeline
         self.event_timeline.append({
             "timestamp": now_iso,
             "event": f"{event_text} (Live at {time_str})",
             "category": category
         })
-        
-        # Check after-hours (log once)
-        is_after_hours = (now.hour < 7 or now.hour >= 20)
-        if is_after_hours and not any("After-hours" in e.get("event", "") for e in self.event_timeline):
-            self.event_timeline.append({
-                "timestamp": now_iso,
-                "event": f"After-hours host activity detected at {now.strftime('%I:%M %p')}",
-                "category": "logon"
-            })
 
-        # Progressive threat escalation
-        if self.suspicious_event_count == 1:
-            self.risk_score = 44.0
-            self.severity = "medium"
-            self.self_score = 0.44
-            self.peer_score = 0.48
-            self.drift_score = 0.18
+        # Count distinct primary threat factors
+        primary_factors = [
+            self.active_factors["cloud_portal"],
+            self.active_factors["usb_storage"],
+            self.active_factors["file_staging"]
+        ]
+        factors_count = sum(primary_factors)
+
+        # Multi-factor correlation scoring
+        if factors_count == 1:
+            # Single isolated factor: MILD / LOW risk
+            # Opening WeTransfer or plugging a USB by itself is NOT a panic alert!
+            self.risk_score = 28.0
+            self.severity = "low"
+            self.self_score = 0.28
+            self.peer_score = 0.32
+            self.drift_score = 0.08
             self.cusum_path.append({
                 "time": time_str,
                 "timestamp": now_iso,
-                "value": 0.18,
+                "value": 0.08,
                 "label": category.upper(),
                 "event": event_text[:80]
             })
-            self.explanation_text = f"Telemetry Alert (Tier 1): Host accessed external cloud transfer service ({event_text}). First observed deviation from engineering peer cohort baseline."
-            level_tag = "🔍 [MEDIUM THREAT]"
-        elif self.suspicious_event_count == 2:
-            self.risk_score = 75.0
+            self.explanation_text = f"Single-Factor Observation: Host accessed {event_text}. Activity is isolated; within normal exploratory threshold. Corroborating factors (USB media or local staging) absent."
+            level_tag = "🟢 [LOW ELEVATION]"
+        elif factors_count == 2:
+            # Correlated dual-factor: HIGH risk!
+            # e.g., Cloud Portal + USB Storage plugged in!
+            self.risk_score = 68.0
             self.severity = "high"
-            self.self_score = 0.78
-            self.peer_score = 0.74
-            self.drift_score = 0.48
+            self.self_score = 0.70
+            self.peer_score = 0.65
+            self.drift_score = 0.38
             self.cusum_path.append({
                 "time": time_str,
                 "timestamp": now_iso,
-                "value": 0.48,
+                "value": 0.38,
                 "label": category.upper(),
                 "event": event_text[:80]
             })
-            self.explanation_text = f"Escalating Threat Pattern (Tier 2): Removable hardware storage attached in proximity to cloud upload activity. CUSUM temporal drift exceeded the 0.25 threshold."
+            self.explanation_text = "Correlated Multi-Factor Threat (Tier 2): Removable hardware storage attached in temporal proximity to external cloud transfer portal. Significant deviation from peer cohort."
             level_tag = "⚠️ [HIGH THREAT]"
         else:
-            self.risk_score = min(98.0, 90.0 + (self.suspicious_event_count * 2.0))
+            # Full exfiltration attack chain: CRITICAL risk!
+            # Cloud Portal + USB Storage + Sensitive File Staged!
+            base_crit = 88.0
+            if self.active_factors["after_hours"]:
+                base_crit = 96.0  # Context multiplier for late night
+            self.risk_score = base_crit
             self.severity = "critical"
-            self.self_score = 0.98
-            self.peer_score = 0.94
-            self.drift_score = 0.95
+            self.self_score = 0.95
+            self.peer_score = 0.92
+            self.drift_score = 0.88
             self.cusum_path.append({
                 "time": time_str,
                 "timestamp": now_iso,
-                "value": 0.95,
+                "value": 0.88,
                 "label": category.upper(),
                 "event": event_text[:80]
             })
-            self.explanation_text = f"Critical Exfiltration Pattern (Tier 3): Multi-vector exfiltration detected. Combination of cloud file transfer, removable storage connection, and sensitive local file handling."
+            self.explanation_text = "Critical Exfiltration Chain (Tier 3): Multi-vector attack detected. Simultaneous combination of cloud egress, removable media connection, and local data staging."
             level_tag = "🔥 [CRITICAL THREAT]"
 
         self.persist_user_state()
 
         print("\n" + "=" * 65)
-        print(f"{level_tag} {self.employee_name} -> Risk Score: {self.risk_score}/100 ({self.severity.upper()})")
+        print(f"{level_tag} {self.employee_name} -> Risk Score: {self.risk_score}/100 ({self.severity.upper()}) [Factors: {factors_count}/3 active]")
         print(f"   Event #{self.suspicious_event_count}:     {event_text} (Live at {time_str})")
+        print(f"   Active Factors: Cloud={self.active_factors['cloud_portal']} | USB={self.active_factors['usb_storage']} | Files={self.active_factors['file_staging']} | Off-Hours={self.active_factors['after_hours']}")
         print(f"   Self-Baseline: {self.self_score:.2f} | Peer-Baseline: {self.peer_score:.2f} | CUSUM Drift: {self.drift_score:.2f}")
-        print(f"   CUSUM Path:    {self.cusum_path}")
-        print(f"   Dashboard URL: http://127.0.0.1:5173/case/{self.user_id}")
+        print(f"   Dashboard URL: http://127.0.0.1:8787/case/{self.user_id}")
         print("=" * 65 + "\n")
 
     def start(self):

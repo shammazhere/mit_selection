@@ -32,10 +32,9 @@
 7. [Interactive Threat Simulator](#-interactive-threat-simulator)
 8. [Repository Structure](#-repository-structure)
 9. [Quick Start Guide & Environment Config](#-quick-start-guide--environment-config)
-10. [Cloud Hosting & Production Deployment](#-cloud-hosting--production-deployment)
-11. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
-12. [Automated Verification & Test Suite](#-automated-verification--test-suite)
-13. [Governance & Ethical Safeguards](#-governance--ethical-safeguards)
+10. [API Specification (Contract B REST Interface)](#-api-specification-contract-b-rest-interface)
+11. [Automated Verification & Test Suite](#-automated-verification--test-suite)
+12. [Governance & Ethical Safeguards](#-governance--ethical-safeguards)
 
 ---
 
@@ -363,47 +362,6 @@ python backend/live_agent.py
 ```
 * Plug in a USB flash drive or visit a file-sharing site (e.g. `https://wetransfer.com/`) in Google Chrome.
 * The agent detects the event in real time and automatically escalates your risk score on the live dashboard.
-
----
-
-## 🌐 Cloud Hosting & Production Deployment
-
-The entire investigative, analytical, and scoring core works identically in cloud environments:
-
-| Feature / Component | Hosted in Cloud | Behavior & Experience |
-| :--- | :---: | :--- |
-| **Ranked Risk Queue** | ✅ 100% Identical | Live account triage, KPI metrics, dynamic search, and cohort fallback disclosures. |
-| **Case Forensic Dossier** | ✅ 100% Identical | Tri-signal gauges (Self, Peer, Drift), plain-English explanations, and event timelines. |
-| **CUSUM Control Chart** | ✅ 100% Identical | Real-time timestamps, threshold flags, and dark-mode interactive hover tooltips. |
-| **False-Positive Calibration** | ✅ 100% Identical | Analysts click "Calibrate as False Positive", triggering instant 0.4× score dampening and queue re-ranking in the cloud database. |
-| **Interactive Threat Simulator** | ✅ 100% Identical | **Zero setup required:** Anyone visiting the hosted URL can open the simulator modal, configure custom attacks (USB + Cloud Upload), and inject threats live. |
-| **Live Host Spyware Sensor** | ✅ Supported via `--server` | Because `live_agent.py` monitors physical hardware on your personal laptop (local USB ports, Chrome history, window manager), run `python backend/live_agent.py --server https://your-app.onrender.com` on your laptop to stream live events straight into the cloud dashboard! |
-
----
-
-### Deployment Options
-
-#### Option A: Unified Full-Stack Cloud Host (Render / Railway / Docker) — Recommended
-FastAPI can serve both the compiled React SPA and the REST API from a single server port, completely avoiding CORS and multiple domains:
-
-1. **Build frontend & run with Docker**:
-   ```bash
-   docker build -t silent-shift .
-   docker run -p 8787:8787 silent-shift
-   ```
-2. **Deploy on Render (Blueprint)**:
-   - Connect your GitHub repository to [Render.com](https://render.com).
-   - Render automatically reads [`render.yaml`](file:///home/mohammed/Documents/Hackathon/mit/render.yaml), installs dependencies, builds the frontend bundle, and launches `python backend/api/main.py`.
-   - Your full application is live with an SSL HTTPS certificate at `https://<your-subdomain>.onrender.com`!
-
-#### Option B: Decoupled Cloud Hosting (Vercel Frontend + Render Backend)
-* **Frontend (Vercel / Netlify)**:
-  - Connect `frontend/` folder.
-  - Build Command: `npm run build`
-  - Output Directory: `dist`
-  - Environment Variable: `VITE_API_BASE=https://your-backend-api.onrender.com`
-* **Backend (Render / Railway / Fly.io / AWS EC2)**:
-  - Command: `uvicorn backend.api.main:app --host 0.0.0.0 --port $PORT`
 
 ---
 
